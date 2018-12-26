@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<a>
+	<b tag_b="attrib_b">text_b</b>
+	<c>
+		<d/>
+	</c>
+</a>

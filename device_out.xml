@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<devices>
+	<device name="WIL-2920SW1">
+		<model>HP 2920</model>
+		<rack_u>1</rack_u>
+		<rack_start>12</rack_start>
+		<power>200</power>
+	</device>
+</devices>

@@ -36,6 +36,7 @@ class Example(QWidget):
         path.moveTo(30,30)
         #start point, control point, end point
         path.cubicTo(30, 30, 200, 350, 350, 30)
+        #call draw function
         qp.drawPath(path)
 
 

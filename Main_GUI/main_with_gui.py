@@ -38,6 +38,7 @@ class DisplayMain(QMainWindow):
         #connect actions to functions
         viewAct.triggered.connect(self.viewRack)
         newAct.triggered.connect(self.addToRack)
+        remAct.triggered.connect(self.removeFromRack)
 
         #add actions to file menu
         fileMenu.addAction(viewAct)
@@ -72,7 +73,7 @@ class DisplayMain(QMainWindow):
 
             #changed this function for GUI input
             new_main_dict = self.add_dev_gui(main_dict)
-            if(new_main_dict):
+            if new_main_dict:
                 print_rack(new_main_dict)
                 reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
                 if reply == QMessageBox.Yes:
@@ -81,6 +82,50 @@ class DisplayMain(QMainWindow):
                 else:
                     print('Not saving')
 
+    def removeFromRack(self):
+        print('Remove from rack')
+
+        fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
+        if fname[0]:
+            f = open(fname[0], 'r')
+            main_root = open_file(f)
+            main_dict = save_vals_to_nested_dict(main_root)
+            new_main_dict = self.remove_dev_gui(main_dict)
+
+            #check to see if a device wa successfully removed
+            if new_main_dict:
+                #self.promptSave(new_main_dict)
+                print_rack(new_main_dict)
+                reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
+                if reply == QMessageBox.Yes:
+                    print('Saving')
+                    self.write_file_from_dict_gui(new_main_dict)
+                else:
+                    print('Not saving')
+
+    # #3) Remove a Device from Existing Rack
+    # elif user_choice == '3':
+    #     print("What is the name of the file that has the rack you are removing a device from?")
+    #     file_in = input("> ")#user input
+    #     #file_in = 'redding_w_cradlepoint.xml'#auto entry
+    #     main_root = open_file(file_in)
+    #     main_dict = save_vals_to_nested_dict(main_root)
+    #     new_main_dict = remove_dev(main_dict)
+    #
+    #     #check to see if dictionary changed, if not don't ask to save
+    #     if new_main_dict:
+    #         ask_save = input("Would you like to save this data to a file?\n1)Yes\n2)No\n>")
+    #         if ask_save == '1':
+    #             print("Saving Data to File")
+    #             write_file_from_dict(new_main_dict)
+    #         #ask user if they want to see the new rack
+    #         view_rack = input("Would you like to view the new rack?\n1)Yes\n2)No\n>")
+    #         if view_rack == "1":
+    #             print_rack(new_main_dict)
+
+
+    #used by add to rack, has user input boxes for needed fields
+    #later, add all inputs to one box?
     def add_dev_gui(self, dev_dict):
         #return old_dict if the device could not be added
         #or false if the user does not click ok on input box
@@ -91,30 +136,22 @@ class DisplayMain(QMainWindow):
             return False
 
         temp_model, ok_model = QInputDialog.getText(self, 'Add Device', 'Device Model: ')
-        #if user does not click Ok exit this add menu
         if not ok_model:
             return False
 
         temp_rack_u, ok_rack_u = QInputDialog.getText(self, 'Add Device', 'Device Height: ')
-        #if user does not click Ok exit this add menu
         if not ok_rack_u:
             return False
 
         temp_start, ok_start = QInputDialog.getText(self, 'Add Device', 'Starting Rack Shelf: ')
-        #if user does not click Ok exit this add menu
         if not ok_start:
             return False
 
         temp_power, ok_power = QInputDialog.getText(self, 'Add Device', 'Power Consumption(W): ')
-        #if user does not click Ok exit this add menu
         if not ok_model:
             return False
 
-        #temp_model = input("Device Model\n>")#'Dell Optiplex 7010' #
-        #temp_rack_u = input("Device Height(Rack U's)\n>")#'1' #
-        #temp_start = input("Starting Rack Shelf\n>")#'9' #
-        #temp_power = input("Power Consumption(W)\n>")#'100' #
-
+        #count is going to be difficult to use when I start adding devices
         #Need to find current count so I can increment
         curr_max = 0
         for device in dev_dict:
@@ -122,12 +159,9 @@ class DisplayMain(QMainWindow):
             if temp_curr > curr_max:
                 curr_max = temp_curr
 
-        #print(f"Current max value is {curr_max}")
         #increment count by one
         curr_max += 1
 
-        #dev_dict.update(temp_name)
-        #print(dev_dict['RED-2920SW1'])
         dev_dict[temp_name] = {}
         dev_dict[temp_name].update({'name':temp_name})
         dev_dict[temp_name].update({'model':temp_model})
@@ -184,6 +218,41 @@ class DisplayMain(QMainWindow):
             with open(fname[0],'w+') as outfile:
                 outfile.write(newxml.toprettyxml(indent='\t',newl='\n'))
                 print("\nFile output complete!")
+
+    def remove_dev_gui(self, dev_dict):
+        #create a temporary device list
+        temp_list = []
+
+        #print current devices on rack
+        print("Current Devices:")
+        for device in dev_dict:
+            print(device)
+            temp_list.append(device)
+
+        #add None so it can be selected from the dropdown
+        temp_list.append('None')
+        #print(temp_list)
+        #temp_dev = input("Which device would you like to remove?\n>")
+        temp_dev, ok_dev = QInputDialog.getItem(self, 'Remove Device', 'Select a device to remove: ', temp_list)
+
+        #validate that user wants to remove a device
+        if ok_dev:
+            if temp_dev in temp_list and temp_dev != 'None':
+                del dev_dict[temp_dev]
+                print("Device Deleted")
+                return dev_dict
+
+        print('No devices removed.')
+        return False
+
+    def promptSave(self, new_main_dict):
+            print_rack(new_main_dict)
+            reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
+            if reply == QMessageBox.Yes:
+                print('Saving')
+                self.write_file_from_dict_gui(new_main_dict)
+            else:
+                print('Not saving')
 
 
 #########

@@ -77,21 +77,9 @@ class DisplayMain(QMainWindow):
                 reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
                 if reply == QMessageBox.Yes:
                     print('Saving')
-                    #self.write_file_from_dict_gui(new_main_dict)
+                    self.write_file_from_dict_gui(new_main_dict)
                 else:
                     print('Not saving')
-
-            #check to see if dictionary changed, if not don't ask to save
-            # if new_main_dict:
-            #     ask_save = input("Would you like to save this data to a file?\n1)Yes\n2)No\n>")
-            #     if ask_save == '1':
-            #         print("Saving Data to File")
-            #         write_file_from_dict(new_main_dict)
-            #
-            #     #ask user if they want to see the new rack
-            #     view_rack = input("Would you like to view the new rack?\n1)Yes\n2)No\n>")
-            #     if view_rack == "1":
-            #         print_rack(new_main_dict)
 
     def add_dev_gui(self, dev_dict):
         #return old_dict if the device could not be added
@@ -159,6 +147,43 @@ class DisplayMain(QMainWindow):
             print("Error, could not add device")
             #return false when device cannot be added
             return False
+
+    def write_file_from_dict_gui(self, dev_dict):
+        #Element arguments (tag, attrib={})
+        out_root = ET.Element('devices')
+        #SubElement arguments (parent, tag, attrib={})
+        for device in dev_dict:
+            out_device = ET.SubElement(out_root, 'device', {'name':device})
+
+            out_model = ET.SubElement(out_device,'model')
+            out_model.text = dev_dict[device]['model']
+
+            out_rack_u = ET.SubElement(out_device, 'rack_u')
+            out_rack_u.text = dev_dict[device]['rack_u']
+
+            out_rack_start = ET.SubElement(out_device, 'rack_start')
+            out_rack_start.text = dev_dict[device]['rack_start']
+
+            out_power = ET.SubElement(out_device, 'power')
+            out_power.text = dev_dict[device]['power']
+
+        #create xml string using ET
+        xmlstr = ET.tostring(out_root).decode()
+        #format xml string so it is not a flat file
+        newxml = MD.parseString(xmlstr)
+
+        #ask user for file name, maybe add an error check saying file needs to end in .xml
+        #out_name = input("Enter file name to save as(including .xml)\n>")
+
+        fname = QFileDialog.getSaveFileName(self, 'Save file', '/home', '.xml')
+        print(fname[0])
+        if fname[0]:
+            #out_name = open(fname[0], 'w+')
+
+            #write data to file
+            with open(fname[0],'w+') as outfile:
+                outfile.write(newxml.toprettyxml(indent='\t',newl='\n'))
+                print("\nFile output complete!")
 
 
 #########

@@ -116,7 +116,9 @@ class DisplayMain(QMainWindow):
             #changed this function for GUI input
             new_main_dict = self.add_dev_gui(main_dict)
             if new_main_dict:
-                print_rack(new_main_dict)
+                #print_rack(new_main_dict)
+                new_main_list = build_rack(new_main_dict)
+                self.printRack_GUI(new_main_list)
                 reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
                 if reply == QMessageBox.Yes:
                     print('Saving')
@@ -137,7 +139,9 @@ class DisplayMain(QMainWindow):
             #check to see if a device wa successfully removed
             if new_main_dict:
                 #self.promptSave(new_main_dict)
-                print_rack(new_main_dict)
+                #print_rack(new_main_dict)
+                new_main_list = build_rack(new_main_dict)
+                self.printRack_GUI(new_main_list)
                 reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
                 if reply == QMessageBox.Yes:
                     print('Saving')

@@ -25,6 +25,7 @@ class DisplayMain(QMainWindow):
         self.top = 100
         self.width = 250
         self.height = 150
+        self.maxRackHeight = 20
         self.initUI()
 
     def initUI(self):
@@ -50,12 +51,12 @@ class DisplayMain(QMainWindow):
         fileMenu.addAction(newAct)
         fileMenu.addAction(remAct)
 
+        #create grid for display
         self.createGridLayout()
-
         windowLayout = QVBoxLayout()
         windowLayout.addWidget(self.horizontalGroupBox)
+        #make this the central widget of the main menu
         self.setCentralWidget(self.horizontalGroupBox)
-
 
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.setWindowTitle(self.title)
@@ -63,16 +64,33 @@ class DisplayMain(QMainWindow):
 
     def createGridLayout(self):
         self.horizontalGroupBox = QGroupBox("Rack")
-        layout = QGridLayout()
-        layout.setColumnStretch(0, self.width / 2)
-        layout.setColumnStretch(1, self.width / 2)
+        self.layout = QGridLayout()
+        self.layout.setColumnStretch(0, self.width / 2)
+        self.layout.setColumnStretch(1, self.width / 2)
 
-        for i in range(20):
+        for i in range(self.maxRackHeight):
+            print(i)
             for j in range(2):
-                layout.addWidget(QLabel("i: {}, j: {}".format(i,j)), i, j)
+                #layout.addWidget(QLabel("i: {}, j: {}".format(i,j)), i, j)
+                if j == 0:
+                    self.layout.addWidget(QLabel(str(self.maxRackHeight - i)), i, j)
+                else:
+                    self.layout.addWidget(QLabel(""), i, j)
 
-        self.horizontalGroupBox.setLayout(layout)
+        self.horizontalGroupBox.setLayout(self.layout)
 
+    def printRack_GUI(self, rack_pos_dict):
+        print(rack_pos_dict)
+        for i in range(self.maxRackHeight):
+            for j in range(2):
+                if j == 0:
+                    #layout.addWidget(QLabel(str(self.maxRackHeight-i)), i, j)
+                    #change label to be device name
+                    if str(self.maxRackHeight - i) in rack_pos_dict.keys():
+                        print(i)
+                        self.layout.addWidget(QLabel("{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)])), i, j)
+                    else:
+                        self.layout.addWidget(QLabel(""), i, j)
 
     #open file and display contents
     #still printing to console, file open gives an error that can be ignored on Mac
@@ -85,7 +103,7 @@ class DisplayMain(QMainWindow):
             main_dict = save_vals_to_nested_dict(main_root)
             #main_list has the indices where each device will be mounted on the rack
             main_list = build_rack(main_dict)
-            print_rack(main_dict)
+            self.printRack_GUI(main_list)
 
     def addToRack(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')

@@ -14,12 +14,17 @@ import xml.dom.minidom as MD
 
 
 import sys
-from PyQt5.QtWidgets import QMainWindow, QTextEdit, QApplication, QAction, QFileDialog, QInputDialog, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QTextEdit, QApplication, QAction, QFileDialog, QInputDialog, QMessageBox, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QWidget
 
 class DisplayMain(QMainWindow):
 
     def __init__(self):
         super().__init__()
+        self.title = 'Main Window'
+        self.left = 100
+        self.top = 100
+        self.width = 250
+        self.height = 150
         self.initUI()
 
     def initUI(self):
@@ -45,9 +50,28 @@ class DisplayMain(QMainWindow):
         fileMenu.addAction(newAct)
         fileMenu.addAction(remAct)
 
-        self.setGeometry(300,300, 250, 150)
-        self.setWindowTitle('Main Window')
+        self.createGridLayout()
+
+        windowLayout = QVBoxLayout()
+        windowLayout.addWidget(self.horizontalGroupBox)
+        self.setCentralWidget(self.horizontalGroupBox)
+
+
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.setWindowTitle(self.title)
         self.show()
+
+    def createGridLayout(self):
+        self.horizontalGroupBox = QGroupBox("Rack")
+        layout = QGridLayout()
+        layout.setColumnStretch(0, self.width / 2)
+        layout.setColumnStretch(1, self.width / 2)
+
+        for i in range(20):
+            for j in range(2):
+                layout.addWidget(QLabel("i: {}, j: {}".format(i,j)), i, j)
+
+        self.horizontalGroupBox.setLayout(layout)
 
 
     #open file and display contents
@@ -102,27 +126,6 @@ class DisplayMain(QMainWindow):
                     self.write_file_from_dict_gui(new_main_dict)
                 else:
                     print('Not saving')
-
-    # #3) Remove a Device from Existing Rack
-    # elif user_choice == '3':
-    #     print("What is the name of the file that has the rack you are removing a device from?")
-    #     file_in = input("> ")#user input
-    #     #file_in = 'redding_w_cradlepoint.xml'#auto entry
-    #     main_root = open_file(file_in)
-    #     main_dict = save_vals_to_nested_dict(main_root)
-    #     new_main_dict = remove_dev(main_dict)
-    #
-    #     #check to see if dictionary changed, if not don't ask to save
-    #     if new_main_dict:
-    #         ask_save = input("Would you like to save this data to a file?\n1)Yes\n2)No\n>")
-    #         if ask_save == '1':
-    #             print("Saving Data to File")
-    #             write_file_from_dict(new_main_dict)
-    #         #ask user if they want to see the new rack
-    #         view_rack = input("Would you like to view the new rack?\n1)Yes\n2)No\n>")
-    #         if view_rack == "1":
-    #             print_rack(new_main_dict)
-
 
     #used by add to rack, has user input boxes for needed fields
     #later, add all inputs to one box?

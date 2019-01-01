@@ -76,25 +76,48 @@ class DisplayMain(QMainWindow):
                     self.layout.addWidget(QLabel(str(self.maxRackHeight - i)), i, j)
                 else:
                     self.layout.addWidget(QLabel(""), i, j)
+                print(self.layout.itemAtPosition(i,j))
 
         self.horizontalGroupBox.setLayout(self.layout)
 
+    def clearGridLayout(self):
+        for i in reversed(range(self.layout.count())):
+            self.layout.itemAt(i).widget().setParent(None)
+
+
+    #add widget adds something on top of existing widget! Does not replace!
+    #need to look into stacked display of widgets
+    #or just clear a row of the grid, since I would want to get rid of anything on the right side too
+    #keep j in range loop because later there will be more columns
     def printRack_GUI(self, rack_pos_dict):
         print(rack_pos_dict)
         for i in range(self.maxRackHeight):
             for j in range(2):
+                #need to add j = 1 logic later
+
                 if j == 0:
-                    #layout.addWidget(QLabel(str(self.maxRackHeight-i)), i, j)
-                    #change label to be device name
+                    #remove widget at current position - this does something weird
+                    #self.layout.removeWidget(self.layout.itemAtPosition(i, j).widget())
                     if str(self.maxRackHeight - i) in rack_pos_dict.keys():
-                        print(i)
+                        print(f"{i} equal good")
+                        print(f"i: {i}, j: {j}")
+                        print("{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)]))
                         self.layout.addWidget(QLabel("{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)])), i, j)
                     else:
-                        self.layout.addWidget(QLabel(""), i, j)
+                        print(f"{i} equal bad")
+                        print(f"i: {i}, j: {j}")
+                        print(f"{self.maxRackHeight - i} string new")
+                        self.layout.addWidget(QLabel("{} ".format(self.maxRackHeight - i)), i, j)
+
+                else:
+                    self.layout.addWidget(QLabel(""), i, j)
 
     #open file and display contents
     #still printing to console, file open gives an error that can be ignored on Mac
     def viewRack(self):
+        print("Clearing old rack")
+        self.clearGridLayout()
+
         fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
 
         if fname[0]:
@@ -141,6 +164,7 @@ class DisplayMain(QMainWindow):
                 #self.promptSave(new_main_dict)
                 #print_rack(new_main_dict)
                 new_main_list = build_rack(new_main_dict)
+                print(new_main_list)
                 self.printRack_GUI(new_main_list)
                 reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
                 if reply == QMessageBox.Yes:

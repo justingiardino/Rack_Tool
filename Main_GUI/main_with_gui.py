@@ -115,12 +115,13 @@ class DisplayMain(QMainWindow):
     #open file and display contents
     #still printing to console, file open gives an error that can be ignored on Mac
     def viewRack(self):
+
+        fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
         print("Clearing old rack")
         self.clearGridLayout()
 
-        fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
-
         if fname[0]:
+            self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
             f = open(fname[0], 'r')
             main_root = open_file(f)
             main_dict = save_vals_to_nested_dict(main_root)
@@ -132,12 +133,17 @@ class DisplayMain(QMainWindow):
         fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
 
         if fname[0]:
+            self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
             f = open(fname[0], 'r')
             main_root = open_file(f)
             main_dict = save_vals_to_nested_dict(main_root)
+            self.clearGridLayout()
+            main_list = build_rack(main_dict)
+            self.printRack_GUI(main_list)
 
             #changed this function for GUI input
             new_main_dict = self.add_dev_gui(main_dict)
+
             if new_main_dict:
                 #print_rack(new_main_dict)
                 new_main_list = build_rack(new_main_dict)
@@ -154,9 +160,14 @@ class DisplayMain(QMainWindow):
 
         fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
         if fname[0]:
+            self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
             f = open(fname[0], 'r')
             main_root = open_file(f)
             main_dict = save_vals_to_nested_dict(main_root)
+            self.clearGridLayout()
+            main_list = build_rack(main_dict)
+            self.printRack_GUI(main_list)
+
             new_main_dict = self.remove_dev_gui(main_dict)
 
             #check to see if a device wa successfully removed
@@ -165,6 +176,7 @@ class DisplayMain(QMainWindow):
                 #print_rack(new_main_dict)
                 new_main_list = build_rack(new_main_dict)
                 print(new_main_list)
+                self.clearGridLayout()
                 self.printRack_GUI(new_main_list)
                 reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
                 if reply == QMessageBox.Yes:
@@ -262,7 +274,7 @@ class DisplayMain(QMainWindow):
         print(fname[0])
         if fname[0]:
             #out_name = open(fname[0], 'w+')
-
+            self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
             #write data to file
             with open(fname[0],'w+') as outfile:
                 outfile.write(newxml.toprettyxml(indent='\t',newl='\n'))

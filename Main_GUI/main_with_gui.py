@@ -23,9 +23,9 @@ class DisplayMain(QMainWindow):
         self.title = 'Main Window'
         self.left = 100
         self.top = 100
-        self.width = 250
+        self.width = 500
         self.height = 150
-        self.maxRackHeight = 20
+        self.maxRackHeight = 25
         self.initUI()
 
     def initUI(self):
@@ -154,6 +154,8 @@ class DisplayMain(QMainWindow):
                     self.write_file_from_dict_gui(new_main_dict)
                 else:
                     print('Not saving')
+                    self.clearGridLayout()
+                    self.printRack_GUI(main_list)
 
     def removeFromRack(self):
         print('Remove from rack')
@@ -184,6 +186,8 @@ class DisplayMain(QMainWindow):
                     self.write_file_from_dict_gui(new_main_dict)
                 else:
                     print('Not saving')
+                    self.clearGridLayout()
+                    self.printRack_GUI(main_list)
 
     #used by add to rack, has user input boxes for needed fields
     #later, add all inputs to one box?

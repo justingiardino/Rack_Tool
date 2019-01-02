@@ -14,7 +14,9 @@ import xml.dom.minidom as MD
 
 
 import sys
-from PyQt5.QtWidgets import QMainWindow, QTextEdit, QApplication, QAction, QFileDialog, QInputDialog, QMessageBox, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QWidget
+from PyQt5.QtWidgets import QMainWindow, QTextEdit, QApplication, QAction, QFileDialog, QInputDialog, QMessageBox, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QWidget, QFrame, QStyleFactory, QToolTip
+from PyQt5.QtGui import QPainter, QBrush
+from PyQt5.QtCore import Qt
 
 class DisplayMain(QMainWindow):
 
@@ -25,7 +27,7 @@ class DisplayMain(QMainWindow):
         self.top = 100
         self.width = 500
         self.height = 150
-        self.maxRackHeight = 25
+        self.maxRackHeight = 20
         self.initUI()
 
     def initUI(self):
@@ -68,15 +70,20 @@ class DisplayMain(QMainWindow):
         self.layout.setColumnStretch(0, self.width / 2)
         self.layout.setColumnStretch(1, self.width / 2)
 
+        #box_frame = QFrame(self)
+        #box_frame.setFrameShape(QFrame.StyledPanel)
+
         for i in range(self.maxRackHeight):
-            print(i)
             for j in range(2):
-                #layout.addWidget(QLabel("i: {}, j: {}".format(i,j)), i, j)
                 if j == 0:
-                    self.layout.addWidget(QLabel(str(self.maxRackHeight - i)), i, j)
+                    label = QLabel(str(self.maxRackHeight - i))
+                    #label.setFrameStyle(QFrame.Box)
+                    label.setStyleSheet("QLabel { background-color : silver; color : black; }")
+                    #self.layout.addWidget(QLabel(str(self.maxRackHeight - i)), i, j)
+                    self.layout.addWidget(label, i, j)
                 else:
                     self.layout.addWidget(QLabel(""), i, j)
-                print(self.layout.itemAtPosition(i,j))
+                #print(self.layout.itemAtPosition(i,j))
 
         self.horizontalGroupBox.setLayout(self.layout)
 
@@ -84,13 +91,11 @@ class DisplayMain(QMainWindow):
         for i in reversed(range(self.layout.count())):
             self.layout.itemAt(i).widget().setParent(None)
 
-
-    #add widget adds something on top of existing widget! Does not replace!
-    #need to look into stacked display of widgets
-    #or just clear a row of the grid, since I would want to get rid of anything on the right side too
     #keep j in range loop because later there will be more columns
-    def printRack_GUI(self, rack_pos_dict):
-        print(rack_pos_dict)
+    def printRack_GUI(self, rack_pos_dict, main_dict):
+        #print(rack_pos_dict)
+        #print('-------')
+        #print(main_dict)
         for i in range(self.maxRackHeight):
             for j in range(2):
                 #need to add j = 1 logic later
@@ -99,15 +104,25 @@ class DisplayMain(QMainWindow):
                     #remove widget at current position - this does something weird
                     #self.layout.removeWidget(self.layout.itemAtPosition(i, j).widget())
                     if str(self.maxRackHeight - i) in rack_pos_dict.keys():
-                        print(f"{i} equal good")
-                        print(f"i: {i}, j: {j}")
-                        print("{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)]))
-                        self.layout.addWidget(QLabel("{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)])), i, j)
+                        #print(f"{i} equal good")
+                        #print(f"i: {i}, j: {j}")
+                        curr_device_str = "{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)])
+                        curr_device_key = rack_pos_dict[str(self.maxRackHeight - i)]
+                        #print(curr_device_str)
+                        label = QLabel(curr_device_str)
+                        #label.setFrameStyle(QFrame.Box)
+                        label.setStyleSheet("QLabel { background-color : silver; color : black; }")
+                        label.setToolTip("Model: {}\r\nPower: W{}".format(main_dict[curr_device_key]['model'], main_dict[curr_device_key]['power']))
+                        #self.layout.addWidget(QLabel("{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)])), i, j)
+                        self.layout.addWidget(label, i, j)
                     else:
-                        print(f"{i} equal bad")
-                        print(f"i: {i}, j: {j}")
-                        print(f"{self.maxRackHeight - i} string new")
-                        self.layout.addWidget(QLabel("{} ".format(self.maxRackHeight - i)), i, j)
+                        #print(f"{i} equal bad")
+                        #print(f"i: {i}, j: {j}")
+                        #print(f"{self.maxRackHeight - i} string new")
+                        label = QLabel(str(self.maxRackHeight - i))
+                        #label.setFrameStyle(QFrame.Box)
+                        label.setStyleSheet("QLabel { background-color : silver; color : black; }")
+                        self.layout.addWidget(label, i, j)
 
                 else:
                     self.layout.addWidget(QLabel(""), i, j)
@@ -127,7 +142,7 @@ class DisplayMain(QMainWindow):
             main_dict = save_vals_to_nested_dict(main_root)
             #main_list has the indices where each device will be mounted on the rack
             main_list = build_rack(main_dict)
-            self.printRack_GUI(main_list)
+            self.printRack_GUI(main_list, main_dict)
 
     def addToRack(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
@@ -139,7 +154,7 @@ class DisplayMain(QMainWindow):
             main_dict = save_vals_to_nested_dict(main_root)
             self.clearGridLayout()
             main_list = build_rack(main_dict)
-            self.printRack_GUI(main_list)
+            self.printRack_GUI(main_list, main_dict)
 
             #changed this function for GUI input
             new_main_dict = self.add_dev_gui(main_dict)
@@ -147,7 +162,7 @@ class DisplayMain(QMainWindow):
             if new_main_dict:
                 #print_rack(new_main_dict)
                 new_main_list = build_rack(new_main_dict)
-                self.printRack_GUI(new_main_list)
+                self.printRack_GUI(new_main_list, new_main_dict)
                 reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
                 if reply == QMessageBox.Yes:
                     print('Saving')
@@ -155,7 +170,7 @@ class DisplayMain(QMainWindow):
                 else:
                     print('Not saving')
                     self.clearGridLayout()
-                    self.printRack_GUI(main_list)
+                    self.printRack_GUI(main_list, main_dict)
 
     def removeFromRack(self):
         print('Remove from rack')
@@ -168,7 +183,7 @@ class DisplayMain(QMainWindow):
             main_dict = save_vals_to_nested_dict(main_root)
             self.clearGridLayout()
             main_list = build_rack(main_dict)
-            self.printRack_GUI(main_list)
+            self.printRack_GUI(main_list, main_dict)
 
             new_main_dict = self.remove_dev_gui(main_dict)
 
@@ -177,9 +192,9 @@ class DisplayMain(QMainWindow):
                 #self.promptSave(new_main_dict)
                 #print_rack(new_main_dict)
                 new_main_list = build_rack(new_main_dict)
-                print(new_main_list)
+                #print(new_main_list)
                 self.clearGridLayout()
-                self.printRack_GUI(new_main_list)
+                self.printRack_GUI(new_main_list, new_main_dict)
                 reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
                 if reply == QMessageBox.Yes:
                     print('Saving')
@@ -187,7 +202,7 @@ class DisplayMain(QMainWindow):
                 else:
                     print('Not saving')
                     self.clearGridLayout()
-                    self.printRack_GUI(main_list)
+                    self.printRack_GUI(main_list, main_dict)
 
     #used by add to rack, has user input boxes for needed fields
     #later, add all inputs to one box?
@@ -275,7 +290,7 @@ class DisplayMain(QMainWindow):
         #out_name = input("Enter file name to save as(including .xml)\n>")
 
         fname = QFileDialog.getSaveFileName(self, 'Save file', '/home', '.xml')
-        print(fname[0])
+        #print(fname[0])
         if fname[0]:
             #out_name = open(fname[0], 'w+')
             self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
@@ -288,10 +303,10 @@ class DisplayMain(QMainWindow):
         #create a temporary device list
         temp_list = []
 
-        #print current devices on rack
-        print("Current Devices:")
+        #store current devices on rack in a list to be used for dropdown
+        #print("Current Devices:")
         for device in dev_dict:
-            print(device)
+            #print(device)
             temp_list.append(device)
 
         #add None so it can be selected from the dropdown
@@ -464,7 +479,8 @@ def save_vals_to_nested_dict(root):
 #put power calculation in another function
 #returns True if there was enough room in the rack, False if there is no room
 def build_rack(dev_dict):
-    print('\n\nBuild Rack\n--------------------')
+    #print('\n\nBuild Rack\n--------------------')
+    print('Build Rack')
     #print(dev_dict) Nested dictionary
     #print(f"{dev_dict['RED-2920SW1']['model']}\n") Access single element
 
@@ -526,8 +542,7 @@ def build_rack(dev_dict):
         #won't need this print in the end, this is for debugging
         #print(f"Count: {dev_dict[device]['count']}\nDevice: {device}\nModel: {dev_dict[device]['model']}\nPower: {dev_dict[device]['power']} Amps\nRack U: {dev_dict[device]['rack_u']}\nRack Start: {dev_dict[device]['rack_start']}\n")
 
-    #This is where I will call GUI
-    print(f"Contents of rack(Rack Position:Device Name): {rack_full}")
+    #print(f"Contents of rack(Rack Position:Device Name): {rack_full}")
 
     return rack_full
 

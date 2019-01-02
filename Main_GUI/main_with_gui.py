@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 
+#todo: Option to edit device on rack
+#Add quit feature
+#Move Rack number to be its own widget
+#open file to last location in Explorer/Finder
+#when saving new file you have to actually type xml, why?
+
 #xml format
-
-#old main is going to have to be broken out into class so I can use self.main_dict and stuff like that
-
 #<tag attribute=value>text</tag>
 
 #ET used for most xml manipulation
 #MD used to format the xml file
-
-import xml.etree.ElementTree as ET
-import xml.dom.minidom as MD
-
+#PyQt5 used for GUI
 
 import sys
-from PyQt5.QtWidgets import QMainWindow, QTextEdit, QApplication, QAction, QFileDialog, QInputDialog, QMessageBox, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QWidget, QFrame, QStyleFactory, QToolTip
-from PyQt5.QtGui import QPainter, QBrush
-from PyQt5.QtCore import Qt
+import xml.etree.ElementTree as ET
+import xml.dom.minidom as MD
+from PyQt5.QtWidgets import QMainWindow, QTextEdit, QApplication, QAction, QFileDialog, QInputDialog, QMessageBox, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QWidget, QStyleFactory, QToolTip
+#from PyQt5.QtGui import QPainter, QBrush
+#from PyQt5.QtCore import Qt
 
 class DisplayMain(QMainWindow):
 
@@ -73,6 +75,8 @@ class DisplayMain(QMainWindow):
         #box_frame = QFrame(self)
         #box_frame.setFrameShape(QFrame.StyledPanel)
 
+        #layout idea - column 0 = number, really small column width
+        #column 1 = Device name with tool tip
         for i in range(self.maxRackHeight):
             for j in range(2):
                 if j == 0:
@@ -112,7 +116,8 @@ class DisplayMain(QMainWindow):
                         label = QLabel(curr_device_str)
                         #label.setFrameStyle(QFrame.Box)
                         label.setStyleSheet("QLabel { background-color : silver; color : black; }")
-                        label.setToolTip("Model: {}\r\nPower: W{}".format(main_dict[curr_device_key]['model'], main_dict[curr_device_key]['power']))
+                        #Tool tip accepts RTF style
+                        label.setToolTip("Model: {}\r\nPower: {} W".format(main_dict[curr_device_key]['model'], main_dict[curr_device_key]['power']))
                         #self.layout.addWidget(QLabel("{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)])), i, j)
                         self.layout.addWidget(label, i, j)
                     else:

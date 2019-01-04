@@ -30,7 +30,7 @@
 import sys
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as MD
-from PyQt5.QtWidgets import QMainWindow, QTextEdit, QApplication, QAction, QFileDialog, QInputDialog, QMessageBox, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QWidget, QStyleFactory, QToolTip
+from PyQt5.QtWidgets import QMainWindow, QTextEdit, QApplication, QAction, QFileDialog, QInputDialog, QMessageBox, QGridLayout, QVBoxLayout, QGroupBox, QLabel, QWidget, QStyleFactory, QToolTip, qApp
 #from PyQt5.QtGui import QPainter, QBrush
 #from PyQt5.QtCore import Qt
 
@@ -55,18 +55,23 @@ class DisplayMain(QMainWindow):
         fileMenu =  menubar.addMenu('File')
         editMenu = menubar.addMenu('Edit')
 
-        #add file actions
+        #Create Actions
         viewAct = QAction('View Existing Rack', self)
         newAct = QAction('Add Device to Rack', self)
         remAct = QAction('Remove Device from Rack', self)
+        quitAct = QAction('Quit', self)
 
         #connect actions to functions
         viewAct.triggered.connect(self.viewRack)
         newAct.triggered.connect(self.addToRack)
         remAct.triggered.connect(self.removeFromRack)
+        quitAct.triggered.connect(self.quitProgram)
 
         #add actions to file menu
         fileMenu.addAction(viewAct)
+        fileMenu.addAction(quitAct)
+
+        #add actions to edit menu
         editMenu.addAction(newAct)
         editMenu.addAction(remAct)
 
@@ -86,9 +91,6 @@ class DisplayMain(QMainWindow):
         self.layout = QGridLayout()
         self.layout.setColumnStretch(0, self.width / 2)
         self.layout.setColumnStretch(1, self.width / 2)
-
-        #box_frame = QFrame(self)
-        #box_frame.setFrameShape(QFrame.StyledPanel)
 
         #layout idea - column 0 = number, really small column width
         #column 1 = Device name with tool tip
@@ -112,35 +114,26 @@ class DisplayMain(QMainWindow):
 
     #keep j in range loop because later there will be more columns
     def printRack_GUI(self, rack_pos_dict, main_dict):
-        #print(rack_pos_dict)
-        #print('-------')
-        #print(main_dict)
         for i in range(self.maxRackHeight):
             for j in range(2):
                 #need to add j = 1 logic later
 
                 if j == 0:
-                    #remove widget at current position - this does something weird
-                    #self.layout.removeWidget(self.layout.itemAtPosition(i, j).widget())
                     if str(self.maxRackHeight - i) in rack_pos_dict.keys():
-                        #print(f"{i} equal good")
-                        #print(f"i: {i}, j: {j}")
+                        #later on I will need to break this out into multiple columns
+                        #for now this will show rack position number and device name at that position
                         curr_device_str = "{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)])
+                        #used to get device name on its own, might be unnecessary later
                         curr_device_key = rack_pos_dict[str(self.maxRackHeight - i)]
-                        #print(curr_device_str)
+                        #create a temporary qlabel object so I can give it a background color
                         label = QLabel(curr_device_str)
-                        #label.setFrameStyle(QFrame.Box)
                         label.setStyleSheet("QLabel { background-color : silver; color : black; }")
                         #Tool tip accepts RTF style
                         label.setToolTip("Model: {}\r\nPower: {} W".format(main_dict[curr_device_key]['model'], main_dict[curr_device_key]['power']))
-                        #self.layout.addWidget(QLabel("{} {}".format(self.maxRackHeight-i,rack_pos_dict[str(self.maxRackHeight - i)])), i, j)
                         self.layout.addWidget(label, i, j)
                     else:
-                        #print(f"{i} equal bad")
-                        #print(f"i: {i}, j: {j}")
-                        #print(f"{self.maxRackHeight - i} string new")
+                        #This will be all I need to print the numbers
                         label = QLabel(str(self.maxRackHeight - i))
-                        #label.setFrameStyle(QFrame.Box)
                         label.setStyleSheet("QLabel { background-color : silver; color : black; }")
                         self.layout.addWidget(label, i, j)
 
@@ -148,14 +141,13 @@ class DisplayMain(QMainWindow):
                     self.layout.addWidget(QLabel(""), i, j)
 
     #open file and display contents
-    #still printing to console, file open gives an error that can be ignored on Mac
+    #file open gives an error that can be ignored on Mac
     def viewRack(self):
 
         fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
-        print("Clearing old rack")
-        self.clearGridLayout()
-
         if fname[0]:
+            print("Clearing old rack")
+            self.clearGridLayout()
             self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
             f = open(fname[0], 'r')
             main_root = open_file(f)
@@ -225,6 +217,9 @@ class DisplayMain(QMainWindow):
                     self.clearGridLayout()
                     main_list = build_rack(main_dict)
                     self.printRack_GUI(main_list, main_dict)
+
+    def quitProgram(self):
+        qApp.quit()
 
     #used by add to rack, has user input boxes for needed fields
     #later, add all inputs to one box?

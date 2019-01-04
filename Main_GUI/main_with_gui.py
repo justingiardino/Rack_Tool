@@ -5,6 +5,20 @@
 #Move Rack number to be its own widget
 #open file to last location in Explorer/Finder
 #when saving new file you have to actually type xml, why?
+#drag and drop box
+#UPS support
+#count bug?
+
+#change menu structure
+#This will cut down on the opening of files and confusion with display
+#File > Open New Rack
+#File > Create New Rack
+#File > Save Current Rack(Should open to current directory)
+#File > Quit(Warn before quiting)
+#Edit > Add device to rack (current file, don't open new)
+#Edit > Remove Device from Rack
+#Edit > Edit Device on Rack (Change name, model, power, or location)
+#View > Rack vs Power?
 
 #xml format
 #<tag attribute=value>text</tag>
@@ -39,6 +53,7 @@ class DisplayMain(QMainWindow):
         menubar = self.menuBar()
 
         fileMenu =  menubar.addMenu('File')
+        editMenu = menubar.addMenu('Edit')
 
         #add file actions
         viewAct = QAction('View Existing Rack', self)
@@ -52,8 +67,8 @@ class DisplayMain(QMainWindow):
 
         #add actions to file menu
         fileMenu.addAction(viewAct)
-        fileMenu.addAction(newAct)
-        fileMenu.addAction(remAct)
+        editMenu.addAction(newAct)
+        editMenu.addAction(remAct)
 
         #create grid for display
         self.createGridLayout()
@@ -206,7 +221,9 @@ class DisplayMain(QMainWindow):
                     self.write_file_from_dict_gui(new_main_dict)
                 else:
                     print('Not saving')
+                    main_dict = save_vals_to_nested_dict(main_root)
                     self.clearGridLayout()
+                    main_list = build_rack(main_dict)
                     self.printRack_GUI(main_list, main_dict)
 
     #used by add to rack, has user input boxes for needed fields
@@ -490,7 +507,7 @@ def build_rack(dev_dict):
     #print(f"{dev_dict['RED-2920SW1']['model']}\n") Access single element
 
     #change later to a larger number
-    rack_height = 10
+    rack_height = 20
     #format {rack start position:name}
     rack_full = {}
     for device in dev_dict:

@@ -20,6 +20,8 @@
 #Edit > Edit Device on Rack (Change name, model, power, or location)
 #View > Rack vs Power?
 
+#perfect time to create new class for current rack
+
 #xml format
 #<tag attribute=value>text</tag>
 

@@ -159,12 +159,12 @@ class DisplayMain(QMainWindow):
             #main_root = open_file(f)
             #main_dict = save_vals_to_nested_dict(main_root)
 
-            main_root = self.curr_rack.open_file(f)
-            main_dict = self.curr_rack.save_vals_to_nested_dict()
+            self.curr_rack.open_file(f)
+            self.curr_rack.save_vals_to_nested_dict()
             #main_dict = self.curr_rack.save_vals_to_nested_dict(main_root)
             #main_list has the indices where each device will be mounted on the rack
-            main_list = build_rack(main_dict)
-            self.printRack_GUI(main_list, main_dict)
+            main_list = build_rack(self.curr_rack.dev_dict)
+            self.printRack_GUI(main_list, self.curr_rack.dev_dict)
 
     def addToRack(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
@@ -361,12 +361,15 @@ class DisplayMain(QMainWindow):
             else:
                 print('Not saving')
 
+#rack object
+#keeps track of the racks root for xml parsing, dictionary containing all values found in the xml file
 
 class Rack(object):
 
     def __init__(self):
-        print("Creating Rack Object")
-        #don't need any inits at this point...
+        self.dev_dict = {}
+        #valid rack will be used in build_rack function
+        self.valid_rack = True
 
     #open file and store the current root position
     def open_file(self, filename):
@@ -379,26 +382,27 @@ class Rack(object):
         #return root
 
     def save_vals_to_nested_dict(self):
-        dev_dict = {}
+        self.dev_dict = {}
         #count is not part of the xml file, but may be helpful to know
         count = 0
         for elem in self.root:
             #add name to dictionary, first declare the nested dictionary
-            dev_dict[elem.attrib['name']] = {}
+            self.dev_dict[elem.attrib['name']] = {}
             #then adds first entry to the nested dictionary
-            dev_dict[elem.attrib['name']].update(elem.attrib)
+            self.dev_dict[elem.attrib['name']].update(elem.attrib)
             #loop through all elements and add them to the nested dictionary
             for subelem in elem:
                 #dictionary entry with tag and text
                 temp_dict = {subelem.tag:subelem.text}
                 #add to end of nested dictionary
-                dev_dict[elem.attrib['name']].update(temp_dict)
+                self.dev_dict[elem.attrib['name']].update(temp_dict)
             count += 1
             #add count value to dictionary
-            dev_dict[elem.attrib['name']].update({'count':count})
+            self.dev_dict[elem.attrib['name']].update({'count':count})
         #print(dev_dict)
         #print(f"RED2920 dictionary: {dev_dict['RED-2920SW1']}")
-        return(dev_dict)
+        #return(self.dev_dict)
+    
 
 
 #########

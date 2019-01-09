@@ -160,11 +160,13 @@ class DisplayMain(QMainWindow):
             #main_dict = save_vals_to_nested_dict(main_root)
 
             self.curr_rack.open_file(f)
-            self.curr_rack.save_vals_to_nested_dict()
+            #self.curr_rack.save_vals_to_nested_dict()
             #main_dict = self.curr_rack.save_vals_to_nested_dict(main_root)
             #main_list has the indices where each device will be mounted on the rack
-            main_list = build_rack(self.curr_rack.dev_dict)
-            self.printRack_GUI(main_list, self.curr_rack.dev_dict)
+            #main_list = build_rack(self.curr_rack.dev_dict)
+            self.curr_rack.build_rack()
+
+            self.printRack_GUI(self.curr_rack.rack_full, self.curr_rack.dev_dict)
 
     def addToRack(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
@@ -381,7 +383,7 @@ class Rack(object):
         #root = tree.getroot()
         #return root
 
-    def save_vals_to_nested_dict(self):
+    #def save_vals_to_nested_dict(self):
         self.dev_dict = {}
         #count is not part of the xml file, but may be helpful to know
         count = 0
@@ -399,10 +401,81 @@ class Rack(object):
             count += 1
             #add count value to dictionary
             self.dev_dict[elem.attrib['name']].update({'count':count})
+            #print(self.dev_dict)
         #print(dev_dict)
         #print(f"RED2920 dictionary: {dev_dict['RED-2920SW1']}")
         #return(self.dev_dict)
-    
+
+#this function will place all devices on the rack, checking to make sure there is space
+#if there is no more space display an erorr and list the devices that collide
+#put power calculation in another function
+#returns True if there was enough room in the rack, False if there is no room
+    def build_rack(self):
+        #print('\n\nBuild Rack\n--------------------')
+        print('Build Rack - New')
+        #change later to a larger number
+        rack_height = 20
+        #format {rack start position:name}
+        self.rack_full = {}
+        for device in self.dev_dict:
+            #check if rack is full at position where device is going
+            #will need to add size check later
+
+            #check to see if height is one, or greater than one
+            if self.dev_dict[device]['rack_u'] == '1':
+                if self.dev_dict[device]['rack_start'] not in self.rack_full.keys():
+                    self.rack_full[self.dev_dict[device]['rack_start']] = device
+                #else already full at that spot, need to error out
+                else:
+                    print(f"Error, that spot at number {self.dev_dict[device]['rack_start']} is already taken by {self.rack_full[self.dev_dict[device]['rack_start']]}\nCannot place device {device} there!\n")
+                    #When this value is false shouldn't print rack and shouldn't allow save
+                    self.valid_rack = False
+                    return
+            #height not equal 1, may need to alter this later
+            else:
+                temp_u = self.dev_dict[device]['rack_u']
+                temp_pos = self.dev_dict[device]['rack_start']
+                temp_count = '1'
+                #this loops through and adds a device to the rack multiple times when the height is larger than 1
+                while True:
+                    #check if current position has already been filled
+                    if temp_pos not in self.rack_full.keys():
+                        #add device to rack if not full
+                        self.rack_full[temp_pos] = device
+                        #move current position down one
+                        temp_pos = str(int(temp_pos)-1)
+                    else:
+                        print(f"Error, that spot at number {temp_pos} is already taken by {self.rack_full[temp_pos]}\nCannot place device {device} there!\n")
+                        self.valid_rack = False
+                        return
+
+                    #check to see if the device has more U's that need to be added
+                    if temp_count != temp_u:
+                        temp_count = str(int(temp_count)+1)
+                        #print("More space needed")
+                    #if all U's of the device have been added leave this while loop
+                    elif temp_pos == '0':
+                        print("Too low, cannot place device there")
+                        self.valid_rack = False
+                        return
+                    elif temp_count == temp_u:
+                        #print("Done adding device")
+                        break
+                    else:
+                        print("Rack full")#Why does this print rack full on first iteration?
+                        self.valid_rack = False
+                        return
+
+                   #print("End of while loop")
+
+            #won't need this print in the end, this is for debugging
+            #print(f"Count: {dev_dict[device]['count']}\nDevice: {device}\nModel: {dev_dict[device]['model']}\nPower: {dev_dict[device]['power']} Amps\nRack U: {dev_dict[device]['rack_u']}\nRack Start: {dev_dict[device]['rack_start']}\n")
+
+        #print(f"Contents of rack(Rack Position:Device Name): {rack_full}")
+
+        #return rack_full
+        self.valid_rack = True
+
 
 
 #########

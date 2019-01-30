@@ -165,36 +165,45 @@ class DisplayMain(QMainWindow):
             #main_list has the indices where each device will be mounted on the rack
             #main_list = build_rack(self.curr_rack.dev_dict)
             self.curr_rack.build_rack()
-
             self.printRack_GUI(self.curr_rack.rack_full, self.curr_rack.dev_dict)
 
+    #Need to translate this funcitno to self.curr_rack
     def addToRack(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
 
-        if fname[0]:
-            self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
-            f = open(fname[0], 'r')
-            main_root = open_file(f)
-            main_dict = save_vals_to_nested_dict(main_root)
-            self.clearGridLayout()
-            main_list = build_rack(main_dict)
-            self.printRack_GUI(main_list, main_dict)
+        #this section was removed, no longer opening new file
+        #fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
+        #if fname[0]:
+        #self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
+        #f = open(fname[0], 'r')
+        #main_root = open_file(f)
+        #main_dict = save_vals_to_nested_dict(main_root)
+        #self.clearGridLayout()
+        #main_list = build_rack(main_dict)
+        #self.printRack_GUI(main_list, main_dict)
 
-            #changed this function for GUI input
-            new_main_dict = self.add_dev_gui(main_dict)
+        #Need to check to see if file is not open first
 
-            if new_main_dict:
-                #print_rack(new_main_dict)
-                new_main_list = build_rack(new_main_dict)
-                self.printRack_GUI(new_main_list, new_main_dict)
-                reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
-                if reply == QMessageBox.Yes:
-                    print('Saving')
-                    self.write_file_from_dict_gui(new_main_dict)
-                else:
-                    print('Not saving')
-                    self.clearGridLayout()
-                    self.printRack_GUI(main_list, main_dict)
+        #changed this function for GUI input
+        #new_main_dict = self.add_dev_gui(main_dict)
+        self.new_rack = self.curr_rack
+        #print(self.new_rack.dev_dict)
+        new_main_dict = self.add_dev_gui(self.curr_rack.dev_dict)
+        #self.new_rack.dev_dict = self.add_dev_gui(self.curr_rack.dev_dict)
+        if new_main_dict:
+        #if self.new_rack.dev_dict:
+            #print_rack(new_main_dict)
+            #new_main_list = build_rack(new_main_dict)
+            new_main_list = build_rack(self.new_rack.dev_dict)
+            #self.new_rack.rack_full = build_rack(self.new_rack.dev_dict)
+            self.printRack_GUI(new_main_list, new_main_dict)
+            reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
+            if reply == QMessageBox.Yes:
+                print('Saving')
+                self.write_file_from_dict_gui(new_main_dict)
+            else:
+                print('Not saving')
+                self.clearGridLayout()
+                self.printRack_GUI(main_list, main_dict)
 
     def removeFromRack(self):
         print('Remove from rack')
@@ -383,10 +392,11 @@ class Rack(object):
         #root = tree.getroot()
         #return root
 
-    #def save_vals_to_nested_dict(self):
+        #def save_vals_to_nested_dict(self):
         self.dev_dict = {}
         #count is not part of the xml file, but may be helpful to know
         count = 0
+        self.count = 0
         for elem in self.root:
             #add name to dictionary, first declare the nested dictionary
             self.dev_dict[elem.attrib['name']] = {}
@@ -398,9 +408,12 @@ class Rack(object):
                 temp_dict = {subelem.tag:subelem.text}
                 #add to end of nested dictionary
                 self.dev_dict[elem.attrib['name']].update(temp_dict)
+            self.count += 1
             count += 1
+            #get rid of count variable from dictionary and make it a self.count
             #add count value to dictionary
             self.dev_dict[elem.attrib['name']].update({'count':count})
+            #each device on the rack has a count value in the dictionary
             #print(self.dev_dict)
         #print(dev_dict)
         #print(f"RED2920 dictionary: {dev_dict['RED-2920SW1']}")
@@ -623,7 +636,7 @@ def save_vals_to_nested_dict(root):
 #returns True if there was enough room in the rack, False if there is no room
 def build_rack(dev_dict):
     #print('\n\nBuild Rack\n--------------------')
-    print('Build Rack')
+    print('Build Rack out in main')
     #print(dev_dict) Nested dictionary
     #print(f"{dev_dict['RED-2920SW1']['model']}\n") Access single element
 

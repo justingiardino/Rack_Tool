@@ -65,15 +65,18 @@ class DisplayMain(QMainWindow):
         newAct = QAction('Add Device to Rack', self)
         remAct = QAction('Remove Device from Rack', self)
         quitAct = QAction('Quit', self)
+        saveAct = QAction('Save', self)
 
         #connect actions to functions
         viewAct.triggered.connect(self.viewRack)
         newAct.triggered.connect(self.addToRack)
         remAct.triggered.connect(self.removeFromRack)
         quitAct.triggered.connect(self.quitProgram)
+        saveAct.triggered.connect(self.saveRack)
 
         #add actions to file menu
         fileMenu.addAction(viewAct)
+        fileMenu.addAction(saveAct)
         fileMenu.addAction(quitAct)
 
         #add actions to edit menu
@@ -187,23 +190,28 @@ class DisplayMain(QMainWindow):
         #new_main_dict = self.add_dev_gui(main_dict)
         self.new_rack = self.curr_rack
         #print(self.new_rack.dev_dict)
-        new_main_dict = self.add_dev_gui(self.curr_rack.dev_dict)
-        #self.new_rack.dev_dict = self.add_dev_gui(self.curr_rack.dev_dict)
-        if new_main_dict:
-        #if self.new_rack.dev_dict:
+        #new_main_dict = self.add_dev_gui(self.curr_rack.dev_dict)
+        self.new_rack.dev_dict = self.add_dev_gui(self.curr_rack.dev_dict)
+        #if new_main_dict:
+        if self.new_rack.dev_dict:
             #print_rack(new_main_dict)
             #new_main_list = build_rack(new_main_dict)
-            new_main_list = build_rack(self.new_rack.dev_dict)
+            #new_main_list = build_rack(self.new_rack.dev_dict)
+            self.new_rack.build_rack()
             #self.new_rack.rack_full = build_rack(self.new_rack.dev_dict)
-            self.printRack_GUI(new_main_list, new_main_dict)
-            reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
-            if reply == QMessageBox.Yes:
-                print('Saving')
-                self.write_file_from_dict_gui(new_main_dict)
-            else:
-                print('Not saving')
-                self.clearGridLayout()
-                self.printRack_GUI(main_list, main_dict)
+            #self.printRack_GUI(new_main_list, new_main_dict)
+            self.printRack_GUI(self.new_rack.rack_full, self.new_rack.dev_dict)
+            # reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
+            # if reply == QMessageBox.Yes:
+            #     print('Saving')
+            #     #self.write_file_from_dict_gui(new_main_dict)
+            #     self.write_file_from_dict_gui(self.new_rack.dev_dict)
+            # else:
+            #     print('Not saving')
+            #     self.clearGridLayout()
+            #     print(self.curr_rack.rack_full)
+            #     self.printRack_GUI(self.curr_rack.rack_full, self.curr_rack.dev_dict)
+                #self.printRack_GUI(main_list, main_dict)
 
     def removeFromRack(self):
         print('Remove from rack')
@@ -241,6 +249,19 @@ class DisplayMain(QMainWindow):
 
     def quitProgram(self):
         qApp.quit()
+
+    def saveRack(self):
+        #reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
+        #if reply == QMessageBox.Yes:
+        print('Saving')
+            #self.write_file_from_dict_gui(new_main_dict)
+        self.write_file_from_dict_gui(self.new_rack.dev_dict)
+        #else:
+        #    print('Not saving')
+        #    self.clearGridLayout()
+        #    print(self.curr_rack.rack_full)
+        #    self.printRack_GUI(self.curr_rack.rack_full, self.curr_rack.dev_dict)
+        #pass
 
     #used by add to rack, has user input boxes for needed fields
     #later, add all inputs to one box?

@@ -56,32 +56,32 @@ class DisplayMain(QMainWindow):
         self.statusBar()
 
         menubar = self.menuBar()
-
-        fileMenu =  menubar.addMenu('File')
-        editMenu = menubar.addMenu('Edit')
+        #change starts here
+        self.fileMenu =  menubar.addMenu('File')
+        self.editMenu = menubar.addMenu('Edit')
 
         #Create Actions
-        viewAct = QAction('View Existing Rack', self)
-        newAct = QAction('Add Device to Rack', self)
-        remAct = QAction('Remove Device from Rack', self)
-        quitAct = QAction('Quit', self)
-        saveAct = QAction('Save', self)
+        self.openAct = QAction('Open Rack', self)
+        self.newAct = QAction('Add Device to Rack', self)
+        self.remAct = QAction('Remove Device from Rack', self)
+        self.quitAct = QAction('Quit', self)
+        self.saveAct = QAction('Save', self)
 
         #connect actions to functions
-        viewAct.triggered.connect(self.viewRack)
-        newAct.triggered.connect(self.addToRack)
-        remAct.triggered.connect(self.removeFromRack)
-        quitAct.triggered.connect(self.quitProgram)
-        saveAct.triggered.connect(self.saveRack)
+        self.openAct.triggered.connect(self.openRack)
+        self.newAct.triggered.connect(self.addToRack)
+        self.remAct.triggered.connect(self.removeFromRack)
+        self.quitAct.triggered.connect(self.quitProgram)
+        self.saveAct.triggered.connect(self.saveRack)
 
         #add actions to file menu
-        fileMenu.addAction(viewAct)
-        fileMenu.addAction(saveAct)
-        fileMenu.addAction(quitAct)
+        self.fileMenu.addAction(self.openAct)
+        #self.fileMenu.addAction(self.saveAct)
+        self.fileMenu.addAction(self.quitAct)
 
         #add actions to edit menu
-        editMenu.addAction(newAct)
-        editMenu.addAction(remAct)
+        #self.editMenu.addAction(newAct)
+        #self.editMenu.addAction(remAct)
 
         #create grid for display
         self.createGridLayout()
@@ -150,7 +150,7 @@ class DisplayMain(QMainWindow):
 
     #open file and display contents
     #file open gives an error that can be ignored on Mac
-    def viewRack(self):
+    def openRack(self):
 
         fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
         if fname[0]:
@@ -169,6 +169,10 @@ class DisplayMain(QMainWindow):
             #main_list = build_rack(self.curr_rack.dev_dict)
             self.curr_rack.build_rack()
             self.printRack_GUI(self.curr_rack.rack_full, self.curr_rack.dev_dict)
+
+        self.editMenu.addAction(self.newAct)
+        self.editMenu.addAction(self.remAct)
+        self.fileMenu.addAction(self.saveAct)
 
     #Need to translate this funcitno to self.curr_rack
     def addToRack(self):
@@ -216,36 +220,43 @@ class DisplayMain(QMainWindow):
     def removeFromRack(self):
         print('Remove from rack')
 
-        fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
-        if fname[0]:
-            self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
-            f = open(fname[0], 'r')
-            main_root = open_file(f)
-            main_dict = save_vals_to_nested_dict(main_root)
-            self.clearGridLayout()
-            main_list = build_rack(main_dict)
-            self.printRack_GUI(main_list, main_dict)
+        #no longer opening new file
+        # fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
+        # if fname[0]:
+        #     self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
+        #     f = open(fname[0], 'r')
+        #     main_root = open_file(f)
+        #     main_dict = save_vals_to_nested_dict(main_root)
+        #     self.clearGridLayout()
+        #     main_list = build_rack(main_dict)
+        #     self.printRack_GUI(main_list, main_dict)
 
-            new_main_dict = self.remove_dev_gui(main_dict)
+        self.new_rack = self.curr_rack
 
-            #check to see if a device wa successfully removed
-            if new_main_dict:
-                #self.promptSave(new_main_dict)
-                #print_rack(new_main_dict)
-                new_main_list = build_rack(new_main_dict)
-                #print(new_main_list)
-                self.clearGridLayout()
-                self.printRack_GUI(new_main_list, new_main_dict)
-                reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
-                if reply == QMessageBox.Yes:
-                    print('Saving')
-                    self.write_file_from_dict_gui(new_main_dict)
-                else:
-                    print('Not saving')
-                    main_dict = save_vals_to_nested_dict(main_root)
-                    self.clearGridLayout()
-                    main_list = build_rack(main_dict)
-                    self.printRack_GUI(main_list, main_dict)
+        #new_main_dict = self.remove_dev_gui(main_dict)
+        self.new_rack.dev_dict = self.remove_dev_gui(self.curr_rack.dev_dict)
+        #self.new_rack.dev_dict = self.add_dev_gui(self.curr_rack.dev_dict)
+        #check to see if a device wa successfully removed
+        #if new_main_dict:
+        if self.new_rack.dev_dict:
+            #self.promptSave(new_main_dict)
+            #print_rack(new_main_dict)
+            #new_main_list = build_rack(new_main_dict)
+            #print(new_main_list)
+            self.new_rack.build_rack()
+            self.printRack_GUI(self.new_rack.rack_full, self.new_rack.dev_dict)
+            # self.clearGridLayout()
+            # self.printRack_GUI(new_main_list, new_main_dict)
+            # reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
+            # if reply == QMessageBox.Yes:
+            #     print('Saving')
+            #     self.write_file_from_dict_gui(new_main_dict)
+            # else:
+            #     print('Not saving')
+            #     main_dict = save_vals_to_nested_dict(main_root)
+            #     self.clearGridLayout()
+            #     main_list = build_rack(main_dict)
+            #     self.printRack_GUI(main_list, main_dict)
 
     def quitProgram(self):
         qApp.quit()
@@ -519,6 +530,7 @@ class Rack(object):
 #This function opens the provided file and finds the "root" of the XML tree
 #may need to rename function
 def open_file(filename):
+    print("Old open_file")
     #open and parse xml file, find root tag
     tree = ET.parse(filename)
     root = tree.getroot()
@@ -532,6 +544,7 @@ def open_file(filename):
 #This function scans through the XML tree and prints all tags and text
 #Mostly use for error/sanity checks
 def print_root(root):
+    print("Old print_root")
     # all items data
     print('\nAll item data:')
     elem_num = 1
@@ -548,6 +561,7 @@ def print_root(root):
 #Currently is manually adding elements, need to make this dynamic
 #Not in production
 def write_file():
+    print("Old write_file")
     #output to an xml file
     #Element arguments (tag, attrib={})
     out_root = ET.Element('devices')
@@ -574,6 +588,7 @@ def write_file():
 
 #This function parses the dictionary and saves all data to a new xml file
 def write_file_from_dict(dev_dict):
+    print("old write_file_from_dict")
     #Element arguments (tag, attrib={})
     out_root = ET.Element('devices')
     #SubElement arguments (parent, tag, attrib={})
@@ -608,6 +623,7 @@ def write_file_from_dict(dev_dict):
 #Issue right now is that the dictionary gets overwritten each time
 #No longer in production
 def save_vals_to_dict(root):
+    print("Old save_vals_to_dict")
     dev_dict = {}
     #count is not part of the xml file, but may be helpful to know
     count = 0
@@ -628,6 +644,7 @@ def save_vals_to_dict(root):
 #using nested dictionary, not yet added to production code
 #This function stores the values of the xml file into a nested dictionary
 def save_vals_to_nested_dict(root):
+    print("Old save_vals_to_nested_dict")
     dev_dict = {}
     #count is not part of the xml file, but may be helpful to know
     count = 0
@@ -656,6 +673,7 @@ def save_vals_to_nested_dict(root):
 #put power calculation in another function
 #returns True if there was enough room in the rack, False if there is no room
 def build_rack(dev_dict):
+    print("Old build_rack")
     #print('\n\nBuild Rack\n--------------------')
     print('Build Rack out in main')
     #print(dev_dict) Nested dictionary
@@ -724,6 +742,7 @@ def build_rack(dev_dict):
     return rack_full
 
 def add_dev_console(dev_dict):
+    print("Old add_dev_console")
     #return old_dict if the device could not be added
     #old_dict = dev_dict
     print("Add Device\n------------")
@@ -769,6 +788,7 @@ def add_dev_console(dev_dict):
 #This function removes a value from the dictionary
 #Currently does not update count values. Not sure if I even need this value
 def remove_dev(dev_dict):
+    print("Old remove_dev")
     #create a temporary device list
     temp_list = []
 
@@ -790,6 +810,7 @@ def remove_dev(dev_dict):
     return False
 
 def print_rack(dev_dict):
+    print("Old print_rack")
     print("\n\nPrinting Device List\n------------------")
     for device in dev_dict:
         print(f"Count: {dev_dict[device]['count']}\nDevice: {device}\nModel: {dev_dict[device]['model']}\nPower: {dev_dict[device]['power']} Amps\nRack U: {dev_dict[device]['rack_u']}\nRack Start: {dev_dict[device]['rack_start']}\n")
@@ -798,11 +819,13 @@ def print_rack(dev_dict):
 #this function prints the current dictionary, just a place holder for now
 #was used by the function save_vals_to_dict which is out of production
 def print_dict(temp_dict):
+    print("Old print_dict")
     print(f"\nThis is device number {temp_dict['count']}\nName: {temp_dict['name']}\nRack U Height: {temp_dict['rack_u']}\nRack Start Location: {temp_dict['rack_start']}\nPower Usage: {temp_dict['power']}")
 
 
 #main application menu, placeholder until GUI is in place
 def main_menu():
+    print("Old main_menu")
     user_choice = 1
     print("\nWelcome to the Rack Builder!\n")
     while user_choice != '0':

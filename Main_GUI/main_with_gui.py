@@ -195,15 +195,19 @@ class DisplayMain(QMainWindow):
         self.new_rack = self.curr_rack
         #print(self.new_rack.dev_dict)
         #new_main_dict = self.add_dev_gui(self.curr_rack.dev_dict)
-        self.new_rack.dev_dict = self.add_dev_gui(self.curr_rack.dev_dict)
+        #self.new_rack.dev_dict = self.add_dev_gui()#self.curr_rack.dev_dict)
         #if new_main_dict:
-        if self.new_rack.dev_dict:
+        #if self.new_rack.dev_dict:
+        print("addToRack")
+        if self.add_dev_gui():
             #print_rack(new_main_dict)
             #new_main_list = build_rack(new_main_dict)
             #new_main_list = build_rack(self.new_rack.dev_dict)
             self.new_rack.build_rack()
             #self.new_rack.rack_full = build_rack(self.new_rack.dev_dict)
             #self.printRack_GUI(new_main_list, new_main_dict)
+            print("new rack list before printing to gui")
+            print(self.new_rack.rack_full)
             self.printRack_GUI(self.new_rack.rack_full, self.new_rack.dev_dict)
             # reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
             # if reply == QMessageBox.Yes:
@@ -276,10 +280,12 @@ class DisplayMain(QMainWindow):
 
     #used by add to rack, has user input boxes for needed fields
     #later, add all inputs to one box?
-    def add_dev_gui(self, dev_dict):
+    #needs to be translated to use self.curr_rack.dev_dict
+    #def add_dev_gui(self, dev_dict):
+    def add_dev_gui(self):
         #return old_dict if the device could not be added
         #or false if the user does not click ok on input box
-
+        print("add_dev_gui")
         temp_name, ok_name = QInputDialog.getText(self, 'Add Device', 'Device Name: ')
         #if user does not click Ok exit this add menu
         if not ok_name:
@@ -303,29 +309,32 @@ class DisplayMain(QMainWindow):
 
         #count is going to be difficult to use when I start adding devices
         #Need to find current count so I can increment
+        #self.curr_rack.dev_dict
         curr_max = 0
-        for device in dev_dict:
-            temp_curr = int(dev_dict[device]['count'])
+        #for device in dev_dict:
+        for device in self.new_rack.dev_dict:
+            temp_curr = int(self.new_rack.dev_dict[device]['count'])
             if temp_curr > curr_max:
                 curr_max = temp_curr
 
         #increment count by one
         curr_max += 1
 
-        dev_dict[temp_name] = {}
-        dev_dict[temp_name].update({'name':temp_name})
-        dev_dict[temp_name].update({'model':temp_model})
-        dev_dict[temp_name].update({'rack_u':temp_rack_u})
-        dev_dict[temp_name].update({'rack_start':temp_start})
-        dev_dict[temp_name].update({'power':temp_power})
-        dev_dict[temp_name].update({'count':curr_max})
+        self.new_rack.dev_dict[temp_name] = {}
+        self.new_rack.dev_dict[temp_name].update({'name':temp_name})
+        self.new_rack.dev_dict[temp_name].update({'model':temp_model})
+        self.new_rack.dev_dict[temp_name].update({'rack_u':temp_rack_u})
+        self.new_rack.dev_dict[temp_name].update({'rack_start':temp_start})
+        self.new_rack.dev_dict[temp_name].update({'power':temp_power})
+        self.new_rack.dev_dict[temp_name].update({'count':curr_max})
 
 
         print("Checking to see if this will fit in the rack.\n")
-        if(build_rack(dev_dict)):
-            print(f"\n\nNew information successfully added: {dev_dict[temp_name]}")
+        if(self.new_rack.valid_rack):
+        #if(build_rack(dev_dict)):
+            print(f"\n\nNew information successfully added: {self.new_rack.dev_dict[temp_name]}")
             #return updated dictionary to main if there was space
-            return dev_dict
+            return True
 
         else:
             print("Error, could not add device")
@@ -461,6 +470,7 @@ class Rack(object):
         #change later to a larger number
         rack_height = 20
         #format {rack start position:name}
+        print(self.dev_dict)
         self.rack_full = {}
         for device in self.dev_dict:
             #check if rack is full at position where device is going
@@ -475,7 +485,7 @@ class Rack(object):
                     print(f"Error, that spot at number {self.dev_dict[device]['rack_start']} is already taken by {self.rack_full[self.dev_dict[device]['rack_start']]}\nCannot place device {device} there!\n")
                     #When this value is false shouldn't print rack and shouldn't allow save
                     self.valid_rack = False
-                    return
+                    return False
             #height not equal 1, may need to alter this later
             else:
                 temp_u = self.dev_dict[device]['rack_u']
@@ -492,7 +502,7 @@ class Rack(object):
                     else:
                         print(f"Error, that spot at number {temp_pos} is already taken by {self.rack_full[temp_pos]}\nCannot place device {device} there!\n")
                         self.valid_rack = False
-                        return
+                        return False
 
                     #check to see if the device has more U's that need to be added
                     if temp_count != temp_u:
@@ -502,14 +512,17 @@ class Rack(object):
                     elif temp_pos == '0':
                         print("Too low, cannot place device there")
                         self.valid_rack = False
-                        return
+                        return False
                     elif temp_count == temp_u:
-                        #print("Done adding device")
+                        print("Done adding device")
+                        print(self.rack_full)
+                        self.valid_rack = True
+                        #return True
                         break
                     else:
                         print("Rack full")#Why does this print rack full on first iteration?
                         self.valid_rack = False
-                        return
+                        return False
 
                    #print("End of while loop")
 

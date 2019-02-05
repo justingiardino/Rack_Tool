@@ -164,6 +164,7 @@ class DisplayMain(QMainWindow):
             print("Just called build_rack, now calling printRack_GUI")
             self.printRack_GUI(self.curr_rack.rack_full, self.curr_rack.dev_dict)
 
+        #adding these menu options since they weren't valid earlier
         self.editMenu.addAction(self.newAct)
         self.editMenu.addAction(self.remAct)
         self.fileMenu.addAction(self.saveAct)
@@ -193,8 +194,12 @@ class DisplayMain(QMainWindow):
             self.printRack_GUI(self.new_rack.rack_full, self.new_rack.dev_dict)
 
     def modifyDevice(self):
-        print("Modify function coming soon...")
-        pass
+        print("modifyDevice")
+        if self.modify_dev_gui():
+            self.new_rack.build_rack()
+            #self.curr_rack = self.new_rack
+            self.printRack_GUI(self.new_rack.rack_full, self.new_rack.dev_dict)
+
 
     def quitProgram(self):
         if self.rack_open:
@@ -274,6 +279,46 @@ class DisplayMain(QMainWindow):
                 #return self.new_rack.dev_dict
 
         print('No devices removed.')
+        return False
+
+    def modify_dev_gui(self):
+        #create a temporary device list
+        temp_list = []
+
+        #store current devices on rack in a list to be used for dropdown
+        #print("Current Devices:")
+        for device in self.new_rack.dev_dict:
+            #print(device)
+            temp_list.append(device)
+
+        #add None so it can be selected from the dropdown
+        temp_list.append('None')
+        temp_dev, ok_dev = QInputDialog.getItem(self, 'Modify Device', 'Select a device to modify: ', temp_list)
+
+        #validate that user wants to modify a device
+        if ok_dev:
+            if temp_dev in temp_list and temp_dev != 'None':
+                #print(self.new_rack.dev_dict[temp_dev].keys())
+                remove_list = ['Device Name', 'Device Model', 'Device Height', 'Starting Rack Shelf', 'Power Consumption(w)', 'None']
+                temp_remove, ok_remove = QInputDialog.getItem(self, 'Modify Device', 'Select which attribute to modify: ', remove_list)
+                if ok_remove and temp_remove != 'None':
+                    #updating the name is going to be a disaster, that's the name of the dictionary
+                    if temp_remove == 'Device Name':
+                        print(self.new_rack.dev_dict[temp_dev]['name'])
+                        self.new_rack.dev_dict[temp_dev]['name'] = 'Test'
+                        print(self.new_rack.dev_dict[temp_dev]['name'])
+                    else:
+                        # self.new_rack.dev_dict[temp_name].update({'model':temp_model})
+                        # self.new_rack.dev_dict[temp_name].update({'rack_u':temp_rack_u})
+                        # self.new_rack.dev_dict[temp_name].update({'rack_start':temp_start})
+                        # self.new_rack.dev_dict[temp_name].update({'power':temp_power})
+                        print("Not yet implemented")
+
+                print("Device modified")
+                return True
+                #return self.new_rack.dev_dict
+
+        print('No devices modified.')
         return False
 
 

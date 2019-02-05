@@ -7,7 +7,7 @@
 #when saving new file you have to actually type xml, why?
 #drag and drop box
 #UPS support
-#count bug?
+#count bug? - got rid of count!!
 
 #change menu structure
 #This will cut down on the opening of files and confusion with display
@@ -49,14 +49,16 @@ class DisplayMain(QMainWindow):
         #creating rack objects
         self.curr_rack = Rack()
         self.new_rack = Rack()
+        #used for prompt save for now
+        self.rack_open = False
         self.initUI()
 
     def initUI(self):
         #create a statusBar for display later
         self.statusBar()
 
+        #Main menu labels
         menubar = self.menuBar()
-        #change starts here
         self.fileMenu =  menubar.addMenu('File')
         self.editMenu = menubar.addMenu('Edit')
 
@@ -64,8 +66,9 @@ class DisplayMain(QMainWindow):
         self.openAct = QAction('Open Rack', self)
         self.newAct = QAction('Add Device to Rack', self)
         self.remAct = QAction('Remove Device from Rack', self)
-        self.quitAct = QAction('Quit', self)
+        self.quitAct = QAction('Leave Program', self)#Mac doesn't like Quit keyword
         self.saveAct = QAction('Save', self)
+        self.modifyAct = QAction('Modify Device on Rack', self)
 
         #connect actions to functions
         self.openAct.triggered.connect(self.openRack)
@@ -73,15 +76,11 @@ class DisplayMain(QMainWindow):
         self.remAct.triggered.connect(self.removeFromRack)
         self.quitAct.triggered.connect(self.quitProgram)
         self.saveAct.triggered.connect(self.saveRack)
+        self.modifyAct.triggered.connect(self.modifyDevice)
 
         #add actions to file menu
         self.fileMenu.addAction(self.openAct)
-        #self.fileMenu.addAction(self.saveAct)
         self.fileMenu.addAction(self.quitAct)
-
-        #add actions to edit menu
-        #self.editMenu.addAction(newAct)
-        #self.editMenu.addAction(remAct)
 
         #create grid for display
         self.createGridLayout()
@@ -90,6 +89,7 @@ class DisplayMain(QMainWindow):
         #make this the central widget of the main menu
         self.setCentralWidget(self.horizontalGroupBox)
 
+        #change these values from the init area
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.setWindowTitle(self.title)
         self.show()
@@ -158,130 +158,55 @@ class DisplayMain(QMainWindow):
             self.clearGridLayout()
             self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
             f = open(fname[0], 'r')
-            #call class object here
-            #main_root = open_file(f)
-            #main_dict = save_vals_to_nested_dict(main_root)
-
             self.curr_rack.open_file(f)
-            #self.curr_rack.save_vals_to_nested_dict()
-            #main_dict = self.curr_rack.save_vals_to_nested_dict(main_root)
-            #main_list has the indices where each device will be mounted on the rack
-            #main_list = build_rack(self.curr_rack.dev_dict)
             self.curr_rack.build_rack()
+            self.new_rack = self.curr_rack
+            print("Just called build_rack, now calling printRack_GUI")
             self.printRack_GUI(self.curr_rack.rack_full, self.curr_rack.dev_dict)
 
         self.editMenu.addAction(self.newAct)
         self.editMenu.addAction(self.remAct)
         self.fileMenu.addAction(self.saveAct)
+        self.editMenu.addAction(self.modifyAct)
+        self.rack_open = True
 
-    #Need to translate this funcitno to self.curr_rack
+
     def addToRack(self):
-
-        #this section was removed, no longer opening new file
-        #fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
-        #if fname[0]:
-        #self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
-        #f = open(fname[0], 'r')
-        #main_root = open_file(f)
-        #main_dict = save_vals_to_nested_dict(main_root)
-        #self.clearGridLayout()
-        #main_list = build_rack(main_dict)
-        #self.printRack_GUI(main_list, main_dict)
-
-        #Need to check to see if file is not open first
-
-        #changed this function for GUI input
-        #new_main_dict = self.add_dev_gui(main_dict)
-        self.new_rack = self.curr_rack
-        #print(self.new_rack.dev_dict)
-        #new_main_dict = self.add_dev_gui(self.curr_rack.dev_dict)
-        #self.new_rack.dev_dict = self.add_dev_gui()#self.curr_rack.dev_dict)
-        #if new_main_dict:
-        #if self.new_rack.dev_dict:
         print("addToRack")
+        #self.new_rack = self.curr_rack
         if self.add_dev_gui():
-            #print_rack(new_main_dict)
-            #new_main_list = build_rack(new_main_dict)
-            #new_main_list = build_rack(self.new_rack.dev_dict)
             self.new_rack.build_rack()
-            #self.new_rack.rack_full = build_rack(self.new_rack.dev_dict)
-            #self.printRack_GUI(new_main_list, new_main_dict)
             print("new rack list before printing to gui")
             print(self.new_rack.rack_full)
+            print(self.curr_rack.rack_full)
+            #self.curr_rack = self.new_rack
             self.printRack_GUI(self.new_rack.rack_full, self.new_rack.dev_dict)
-            # reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
-            # if reply == QMessageBox.Yes:
-            #     print('Saving')
-            #     #self.write_file_from_dict_gui(new_main_dict)
-            #     self.write_file_from_dict_gui(self.new_rack.dev_dict)
-            # else:
-            #     print('Not saving')
-            #     self.clearGridLayout()
-            #     print(self.curr_rack.rack_full)
-            #     self.printRack_GUI(self.curr_rack.rack_full, self.curr_rack.dev_dict)
-                #self.printRack_GUI(main_list, main_dict)
+
 
     def removeFromRack(self):
-        print('Remove from rack')
-
-        #no longer opening new file
-        # fname = QFileDialog.getOpenFileName(self, 'Open file', '/home')
-        # if fname[0]:
-        #     self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
-        #     f = open(fname[0], 'r')
-        #     main_root = open_file(f)
-        #     main_dict = save_vals_to_nested_dict(main_root)
-        #     self.clearGridLayout()
-        #     main_list = build_rack(main_dict)
-        #     self.printRack_GUI(main_list, main_dict)
-
-        self.new_rack = self.curr_rack
-
-        #new_main_dict = self.remove_dev_gui(main_dict)
-        self.new_rack.dev_dict = self.remove_dev_gui(self.curr_rack.dev_dict)
-        #self.new_rack.dev_dict = self.add_dev_gui(self.curr_rack.dev_dict)
-        #check to see if a device wa successfully removed
-        #if new_main_dict:
-        if self.new_rack.dev_dict:
-            #self.promptSave(new_main_dict)
-            #print_rack(new_main_dict)
-            #new_main_list = build_rack(new_main_dict)
-            #print(new_main_list)
+        print('removeFromRack')
+        #self.new_rack = self.curr_rack
+        #self.new_rack.dev_dict = self.remove_dev_gui()
+        if self.remove_dev_gui():
             self.new_rack.build_rack()
+            #self.curr_rack = self.new_rack
             self.printRack_GUI(self.new_rack.rack_full, self.new_rack.dev_dict)
-            # self.clearGridLayout()
-            # self.printRack_GUI(new_main_list, new_main_dict)
-            # reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
-            # if reply == QMessageBox.Yes:
-            #     print('Saving')
-            #     self.write_file_from_dict_gui(new_main_dict)
-            # else:
-            #     print('Not saving')
-            #     main_dict = save_vals_to_nested_dict(main_root)
-            #     self.clearGridLayout()
-            #     main_list = build_rack(main_dict)
-            #     self.printRack_GUI(main_list, main_dict)
+
+    def modifyDevice(self):
+        print("Modify function coming soon...")
+        pass
 
     def quitProgram(self):
+        if self.rack_open:
+            self.promptSave()
         qApp.quit()
 
     def saveRack(self):
-        #reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
-        #if reply == QMessageBox.Yes:
         print('Saving')
-            #self.write_file_from_dict_gui(new_main_dict)
         self.write_file_from_dict_gui(self.new_rack.dev_dict)
-        #else:
-        #    print('Not saving')
-        #    self.clearGridLayout()
-        #    print(self.curr_rack.rack_full)
-        #    self.printRack_GUI(self.curr_rack.rack_full, self.curr_rack.dev_dict)
-        #pass
 
     #used by add to rack, has user input boxes for needed fields
     #later, add all inputs to one box?
-    #needs to be translated to use self.curr_rack.dev_dict
-    #def add_dev_gui(self, dev_dict):
     def add_dev_gui(self):
         #return old_dict if the device could not be added
         #or false if the user does not click ok on input box
@@ -307,39 +232,50 @@ class DisplayMain(QMainWindow):
         if not ok_model:
             return False
 
-        #count is going to be difficult to use when I start adding devices
-        #Need to find current count so I can increment
-        #self.curr_rack.dev_dict
-        curr_max = 0
-        #for device in dev_dict:
-        for device in self.new_rack.dev_dict:
-            temp_curr = int(self.new_rack.dev_dict[device]['count'])
-            if temp_curr > curr_max:
-                curr_max = temp_curr
-
-        #increment count by one
-        curr_max += 1
-
         self.new_rack.dev_dict[temp_name] = {}
         self.new_rack.dev_dict[temp_name].update({'name':temp_name})
         self.new_rack.dev_dict[temp_name].update({'model':temp_model})
         self.new_rack.dev_dict[temp_name].update({'rack_u':temp_rack_u})
         self.new_rack.dev_dict[temp_name].update({'rack_start':temp_start})
         self.new_rack.dev_dict[temp_name].update({'power':temp_power})
-        self.new_rack.dev_dict[temp_name].update({'count':curr_max})
 
 
         print("Checking to see if this will fit in the rack.\n")
         if(self.new_rack.valid_rack):
-        #if(build_rack(dev_dict)):
             print(f"\n\nNew information successfully added: {self.new_rack.dev_dict[temp_name]}")
-            #return updated dictionary to main if there was space
+            #this section might not be necessary
             return True
 
         else:
             print("Error, could not add device")
-            #return false when device cannot be added
             return False
+
+    #Remove a device from the rack from dropdown, no need for validation on user input
+    def remove_dev_gui(self):
+        #create a temporary device list
+        temp_list = []
+
+        #store current devices on rack in a list to be used for dropdown
+        #print("Current Devices:")
+        for device in self.new_rack.dev_dict:
+            #print(device)
+            temp_list.append(device)
+
+        #add None so it can be selected from the dropdown
+        temp_list.append('None')
+        temp_dev, ok_dev = QInputDialog.getItem(self, 'Remove Device', 'Select a device to remove: ', temp_list)
+
+        #validate that user wants to remove a device
+        if ok_dev:
+            if temp_dev in temp_list and temp_dev != 'None':
+                del self.new_rack.dev_dict[temp_dev]
+                print("Device Deleted")
+                return True
+                #return self.new_rack.dev_dict
+
+        print('No devices removed.')
+        return False
+
 
     def write_file_from_dict_gui(self, dev_dict):
         #Element arguments (tag, attrib={})
@@ -365,57 +301,28 @@ class DisplayMain(QMainWindow):
         #format xml string so it is not a flat file
         newxml = MD.parseString(xmlstr)
 
-        #ask user for file name, maybe add an error check saying file needs to end in .xml
-        #out_name = input("Enter file name to save as(including .xml)\n>")
 
         fname = QFileDialog.getSaveFileName(self, 'Save file', '/home', '.xml')
         #print(fname[0])
         if fname[0]:
-            #out_name = open(fname[0], 'w+')
             self.horizontalGroupBox.setTitle("Rack File: {}".format(fname[0]))
             #write data to file
             with open(fname[0],'w+') as outfile:
                 outfile.write(newxml.toprettyxml(indent='\t',newl='\n'))
                 print("\nFile output complete!")
 
-    def remove_dev_gui(self, dev_dict):
-        #create a temporary device list
-        temp_list = []
 
-        #store current devices on rack in a list to be used for dropdown
-        #print("Current Devices:")
-        for device in dev_dict:
-            #print(device)
-            temp_list.append(device)
-
-        #add None so it can be selected from the dropdown
-        temp_list.append('None')
-        #print(temp_list)
-        #temp_dev = input("Which device would you like to remove?\n>")
-        temp_dev, ok_dev = QInputDialog.getItem(self, 'Remove Device', 'Select a device to remove: ', temp_list)
-
-        #validate that user wants to remove a device
-        if ok_dev:
-            if temp_dev in temp_list and temp_dev != 'None':
-                del dev_dict[temp_dev]
-                print("Device Deleted")
-                return dev_dict
-
-        print('No devices removed.')
-        return False
-
-    def promptSave(self, new_main_dict):
-            print_rack(new_main_dict)
+    #called by quit program
+    def promptSave(self):
+            #print_rack(new_main_dict)
             reply = QMessageBox.question(self, 'Save File', 'Would you like to save this file?', QMessageBox.No | QMessageBox.Yes, QMessageBox.Yes)
             if reply == QMessageBox.Yes:
-                print('Saving')
-                self.write_file_from_dict_gui(new_main_dict)
+                self.saveRack()
             else:
                 print('Not saving')
 
 #rack object
 #keeps track of the racks root for xml parsing, dictionary containing all values found in the xml file
-
 class Rack(object):
 
     def __init__(self):
@@ -426,18 +333,10 @@ class Rack(object):
     #open file and store the current root position
     def open_file(self, filename):
         tree = ET.parse(filename)
-        #either use this one line or the next two
-        #self.curr_root = tree.getroot()
 
         self.root = tree.getroot()
-        #root = tree.getroot()
-        #return root
 
-        #def save_vals_to_nested_dict(self):
         self.dev_dict = {}
-        #count is not part of the xml file, but may be helpful to know
-        count = 0
-        self.count = 0
         for elem in self.root:
             #add name to dictionary, first declare the nested dictionary
             self.dev_dict[elem.attrib['name']] = {}
@@ -449,16 +348,6 @@ class Rack(object):
                 temp_dict = {subelem.tag:subelem.text}
                 #add to end of nested dictionary
                 self.dev_dict[elem.attrib['name']].update(temp_dict)
-            self.count += 1
-            count += 1
-            #get rid of count variable from dictionary and make it a self.count
-            #add count value to dictionary
-            self.dev_dict[elem.attrib['name']].update({'count':count})
-            #each device on the rack has a count value in the dictionary
-            #print(self.dev_dict)
-        #print(dev_dict)
-        #print(f"RED2920 dictionary: {dev_dict['RED-2920SW1']}")
-        #return(self.dev_dict)
 
 #this function will place all devices on the rack, checking to make sure there is space
 #if there is no more space display an erorr and list the devices that collide
@@ -515,7 +404,7 @@ class Rack(object):
                         return False
                     elif temp_count == temp_u:
                         print("Done adding device")
-                        print(self.rack_full)
+                        #print(self.rack_full)
                         self.valid_rack = True
                         #return True
                         break
@@ -524,388 +413,13 @@ class Rack(object):
                         self.valid_rack = False
                         return False
 
-                   #print("End of while loop")
-
             #won't need this print in the end, this is for debugging
             #print(f"Count: {dev_dict[device]['count']}\nDevice: {device}\nModel: {dev_dict[device]['model']}\nPower: {dev_dict[device]['power']} Amps\nRack U: {dev_dict[device]['rack_u']}\nRack Start: {dev_dict[device]['rack_start']}\n")
 
-        #print(f"Contents of rack(Rack Position:Device Name): {rack_full}")
+        print(f"Contents of rack(Rack Position:Device Name):\n {self.rack_full}")
 
         #return rack_full
         self.valid_rack = True
-
-
-
-#########
-#OLD Main
-#########
-
-#This function opens the provided file and finds the "root" of the XML tree
-#may need to rename function
-def open_file(filename):
-    print("Old open_file")
-    #open and parse xml file, find root tag
-    tree = ET.parse(filename)
-    root = tree.getroot()
-    #print_root(root)
-    #format that root is returned as is only good when looping through entire tree
-    #since this program will be accessing specific elements the dictionary was needed
-    return root
-
-
-
-#This function scans through the XML tree and prints all tags and text
-#Mostly use for error/sanity checks
-def print_root(root):
-    print("Old print_root")
-    # all items data
-    print('\nAll item data:')
-    elem_num = 1
-    for elem in root:
-        #elem is each device tag
-        #attrib is a dictionary with 'name' as the key and actual device name as the value
-        #printing elem.tag will display the word device
-        print(f"\nDevice #: {elem_num}, {elem.attrib['name']}")
-        elem_num += 1
-        for subelem in elem:
-            print(f"{subelem.tag} = {subelem.text}")
-
-#This function writes an XML string out to a file
-#Currently is manually adding elements, need to make this dynamic
-#Not in production
-def write_file():
-    print("Old write_file")
-    #output to an xml file
-    #Element arguments (tag, attrib={})
-    out_root = ET.Element('devices')
-    #SubElement arguments (parent, tag, attrib={})
-    out_device = ET.SubElement(out_root, 'device', {'name':'WIL-2920SW1'})
-    out_model = ET.SubElement(out_device, 'model')
-    #add text to tag
-    out_model.text = 'HP 2920'
-    out_rack_u = ET.SubElement(out_device, 'rack_u')
-    out_rack_u.text = '1'
-    out_rack_start = ET.SubElement(out_device, 'rack_start')
-    out_rack_start.text = '12'
-    out_power = ET.SubElement(out_device, 'power')
-    out_power.text = '200'
-
-    #create xml string using ET
-    xmlstr = ET.tostring(out_root).decode()
-    #format xml string so it is not a flat file
-    newxml = MD.parseString(xmlstr)
-    #write data to file
-    with open('device_out.xml','w') as outfile:
-        outfile.write(newxml.toprettyxml(indent='\t',newl='\n'))
-    print("\nFile output complete!")
-
-#This function parses the dictionary and saves all data to a new xml file
-def write_file_from_dict(dev_dict):
-    print("old write_file_from_dict")
-    #Element arguments (tag, attrib={})
-    out_root = ET.Element('devices')
-    #SubElement arguments (parent, tag, attrib={})
-    for device in dev_dict:
-        out_device = ET.SubElement(out_root, 'device', {'name':device})
-
-        out_model = ET.SubElement(out_device,'model')
-        out_model.text = dev_dict[device]['model']
-
-        out_rack_u = ET.SubElement(out_device, 'rack_u')
-        out_rack_u.text = dev_dict[device]['rack_u']
-
-        out_rack_start = ET.SubElement(out_device, 'rack_start')
-        out_rack_start.text = dev_dict[device]['rack_start']
-
-        out_power = ET.SubElement(out_device, 'power')
-        out_power.text = dev_dict[device]['power']
-
-    #create xml string using ET
-    xmlstr = ET.tostring(out_root).decode()
-    #format xml string so it is not a flat file
-    newxml = MD.parseString(xmlstr)
-
-    #ask user for file name, maybe add an error check saying file needs to end in .xml
-    out_name = input("Enter file name to save as(including .xml)\n>")
-    #write data to file
-    with open(out_name,'w') as outfile:
-        outfile.write(newxml.toprettyxml(indent='\t',newl='\n'))
-    print("\nFile output complete!")
-
-#This function creates a dictionary for each device,
-#Issue right now is that the dictionary gets overwritten each time
-#No longer in production
-def save_vals_to_dict(root):
-    print("Old save_vals_to_dict")
-    dev_dict = {}
-    #count is not part of the xml file, but may be helpful to know
-    count = 0
-    for elem in root:
-        #add name to dictionary
-        dev_dict.update(elem.attrib)
-        #loop through all elements and add them to the device dictionary
-        for subelem in elem:
-            #dictionary entry with tag and text
-            temp_dict = {subelem.tag:subelem.text}
-            dev_dict.update(temp_dict)
-        count += 1
-        #add count value to dictionary
-        dev_dict.update({'count':count})
-        #display current dictionary before it gets overwritten
-        print_dict(dev_dict)
-
-#using nested dictionary, not yet added to production code
-#This function stores the values of the xml file into a nested dictionary
-def save_vals_to_nested_dict(root):
-    print("Old save_vals_to_nested_dict")
-    dev_dict = {}
-    #count is not part of the xml file, but may be helpful to know
-    count = 0
-    for elem in root:
-        #add name to dictionary, first declare the nested dictionary
-        dev_dict[elem.attrib['name']] = {}
-        #then adds first entry to the nested dictionary
-        dev_dict[elem.attrib['name']].update(elem.attrib)
-        #loop through all elements and add them to the nested dictionary
-        for subelem in elem:
-            #dictionary entry with tag and text
-            temp_dict = {subelem.tag:subelem.text}
-            #add to end of nested dictionary
-            dev_dict[elem.attrib['name']].update(temp_dict)
-        count += 1
-        #add count value to dictionary
-        dev_dict[elem.attrib['name']].update({'count':count})
-    #print(dev_dict)
-    #print(f"RED2920 dictionary: {dev_dict['RED-2920SW1']}")
-    return(dev_dict)
-
-
-
-#this function will place all devices on the rack, checking to make sure there is space
-#if there is no more space display an erorr and list the devices that collide
-#put power calculation in another function
-#returns True if there was enough room in the rack, False if there is no room
-def build_rack(dev_dict):
-    print("Old build_rack")
-    #print('\n\nBuild Rack\n--------------------')
-    print('Build Rack out in main')
-    #print(dev_dict) Nested dictionary
-    #print(f"{dev_dict['RED-2920SW1']['model']}\n") Access single element
-
-    #change later to a larger number
-    rack_height = 20
-    #format {rack start position:name}
-    rack_full = {}
-    for device in dev_dict:
-        #check if rack is full at position where device is going
-        #will need to add size check later
-        #print(device)
-        #print(f"Rack U's: {dev_dict[device]['rack_u']}")
-
-        #check to see if height is one, or greater than one
-        if dev_dict[device]['rack_u'] == '1':
-
-            if dev_dict[device]['rack_start'] not in rack_full.keys():
-                #print(dev_dict[device]['rack_start'])
-                rack_full[dev_dict[device]['rack_start']] = device
-                #else already full at that spot, need to error out
-            else:
-                print(f"Error, that spot at number {dev_dict[device]['rack_start']} is already taken by {rack_full[dev_dict[device]['rack_start']]}\nCannot place device {device} there!\n")
-                return False
-        #height not equal 1, may need to alter this later
-        else:
-            temp_u = dev_dict[device]['rack_u']
-            temp_pos = dev_dict[device]['rack_start']
-            temp_count = '1'
-            #print(f"Rack height: {temp_u} and Rack start: {temp_pos}\nDifference: {int(temp_pos) - int(temp_u)}")
-            #this loops through and adds a device to the rack multiple times when the height is larger than 1
-            while True:
-                #check if current position has already been filled
-                if temp_pos not in rack_full.keys():
-                    #add device to rack if not full
-                    rack_full[temp_pos] = device
-                    #move current position down one
-                    temp_pos = str(int(temp_pos)-1)
-                else:
-                    print(f"Error, that spot at number {temp_pos} is already taken by {rack_full[temp_pos]}\nCannot place device {device} there!\n")
-                    return False
-
-                #check to see if the device has more U's that need to be added
-                if temp_count != temp_u:
-                    temp_count = str(int(temp_count)+1)
-                    #print("More space needed")
-                #if all U's of the device have been added leave this while loop
-                elif temp_pos == '0':
-                    print("Too low, cannot place device there")
-                    return False
-                elif temp_count == temp_u:
-                    #print("Done adding device")
-                    break
-                else:
-                    print("Rack full")#Why does this print rack full on first iteration?
-                    return False
-
-               #print("End of while loop")
-
-        #won't need this print in the end, this is for debugging
-        #print(f"Count: {dev_dict[device]['count']}\nDevice: {device}\nModel: {dev_dict[device]['model']}\nPower: {dev_dict[device]['power']} Amps\nRack U: {dev_dict[device]['rack_u']}\nRack Start: {dev_dict[device]['rack_start']}\n")
-
-    #print(f"Contents of rack(Rack Position:Device Name): {rack_full}")
-
-    return rack_full
-
-def add_dev_console(dev_dict):
-    print("Old add_dev_console")
-    #return old_dict if the device could not be added
-    #old_dict = dev_dict
-    print("Add Device\n------------")
-    temp_name = input("Device Name\n>") #'RED-Sonitrol'#
-    temp_model = input("Device Model\n>")#'Dell Optiplex 7010' #
-    temp_rack_u = input("Device Height(Rack U's)\n>")#'1' #
-    temp_start = input("Starting Rack Shelf\n>")#'9' #
-    temp_power = input("Power Consumption(W)\n>")#'100' #
-
-    #Need to find current count so I can increment
-    curr_max = 0
-    for device in dev_dict:
-        temp_curr = int(dev_dict[device]['count'])
-        if temp_curr > curr_max:
-            curr_max = temp_curr
-
-    #print(f"Current max value is {curr_max}")
-    #increment count by one
-    curr_max += 1
-
-    #dev_dict.update(temp_name)
-    #print(dev_dict['RED-2920SW1'])
-    dev_dict[temp_name] = {}
-    dev_dict[temp_name].update({'name':temp_name})
-    dev_dict[temp_name].update({'model':temp_model})
-    dev_dict[temp_name].update({'rack_u':temp_rack_u})
-    dev_dict[temp_name].update({'rack_start':temp_start})
-    dev_dict[temp_name].update({'power':temp_power})
-    dev_dict[temp_name].update({'count':curr_max})
-
-
-    print("Checking to see if this will fit in the rack.\n")
-    if(build_rack(dev_dict)):
-        print(f"\n\nNew information successfully added: {dev_dict[temp_name]}")
-        #return updated dictionary to main if there was space
-        return dev_dict
-
-    else:
-        print("Error, could not add device")
-        #return false when device cannot be added
-        return False
-
-#This function removes a value from the dictionary
-#Currently does not update count values. Not sure if I even need this value
-def remove_dev(dev_dict):
-    print("Old remove_dev")
-    #create a temporary device list
-    temp_list = []
-
-    #print current devices on rack
-    print("Current Devices:")
-    for device in dev_dict:
-        print(device)
-        temp_list.append(device)
-    print(temp_list)
-    temp_dev = input("Which device would you like to remove?\n>")
-
-    #check for valid entry, make sure that value is actually in the dictionary
-    if temp_dev in temp_list:
-        del dev_dict[temp_dev]
-        print("Device Deleted")
-        return dev_dict
-
-    print('Error device is not in this rack.')
-    return False
-
-def print_rack(dev_dict):
-    print("Old print_rack")
-    print("\n\nPrinting Device List\n------------------")
-    for device in dev_dict:
-        print(f"Count: {dev_dict[device]['count']}\nDevice: {device}\nModel: {dev_dict[device]['model']}\nPower: {dev_dict[device]['power']} Amps\nRack U: {dev_dict[device]['rack_u']}\nRack Start: {dev_dict[device]['rack_start']}\n")
-
-
-#this function prints the current dictionary, just a place holder for now
-#was used by the function save_vals_to_dict which is out of production
-def print_dict(temp_dict):
-    print("Old print_dict")
-    print(f"\nThis is device number {temp_dict['count']}\nName: {temp_dict['name']}\nRack U Height: {temp_dict['rack_u']}\nRack Start Location: {temp_dict['rack_start']}\nPower Usage: {temp_dict['power']}")
-
-
-#main application menu, placeholder until GUI is in place
-def main_menu():
-    print("Old main_menu")
-    user_choice = 1
-    print("\nWelcome to the Rack Builder!\n")
-    while user_choice != '0':
-        print("\nWhat would you like to do?\n1)View Existing Rack\n2)Add Device to Existing Rack\n3)Remove a Device from Existing Rack\n4)Build New Rack\n\nEnter 0 to exit")
-        user_choice = input("> ")
-
-        #1) View Existing Rack
-        if user_choice == '1':
-            print("What is the name of the file?")
-            file_in = input("> ")#user input
-            #file_in = 'device_out_new.xml'#auto entry
-            main_root = open_file(file_in)
-            main_dict = save_vals_to_nested_dict(main_root)
-            #main_list has the indices where each device will be mounted on the rack
-            main_list = build_rack(main_dict)
-            print_rack(main_dict)
-        #2) Add Device to Existing Rack
-        elif user_choice == '2':
-            print("What is the name of the file that has the rack you are adding to?")
-            file_in = input("> ")#user input
-            #file_in = 'device_list.xml'#auto entry
-            main_root = open_file(file_in)
-            main_dict = save_vals_to_nested_dict(main_root)
-            new_main_dict = add_dev_console(main_dict)
-
-            #check to see if dictionary changed, if not don't ask to save
-            if new_main_dict:
-                ask_save = input("Would you like to save this data to a file?\n1)Yes\n2)No\n>")
-                if ask_save == '1':
-                    print("Saving Data to File")
-                    write_file_from_dict(new_main_dict)
-
-                #ask user if they want to see the new rack
-                view_rack = input("Would you like to view the new rack?\n1)Yes\n2)No\n>")
-                if view_rack == "1":
-                    print_rack(new_main_dict)
-
-        #3) Remove a Device from Existing Rack
-        elif user_choice == '3':
-            print("What is the name of the file that has the rack you are removing a device from?")
-            file_in = input("> ")#user input
-            #file_in = 'redding_w_cradlepoint.xml'#auto entry
-            main_root = open_file(file_in)
-            main_dict = save_vals_to_nested_dict(main_root)
-            new_main_dict = remove_dev(main_dict)
-
-            #check to see if dictionary changed, if not don't ask to save
-            if new_main_dict:
-                ask_save = input("Would you like to save this data to a file?\n1)Yes\n2)No\n>")
-                if ask_save == '1':
-                    print("Saving Data to File")
-                    write_file_from_dict(new_main_dict)
-                #ask user if they want to see the new rack
-                view_rack = input("Would you like to view the new rack?\n1)Yes\n2)No\n>")
-                if view_rack == "1":
-                    print_rack(new_main_dict)
-
-
-        #4) Build New Rack
-        elif user_choice == '4':
-            print('Not yet implemented')
-            #new rack from scratch
-        elif user_choice == '0':
-            print('Good Bye!')
-        else:
-            print('Try again!')
-
 
 if __name__ == '__main__':
     #main_menu()

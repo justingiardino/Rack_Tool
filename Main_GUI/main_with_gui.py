@@ -1,26 +1,22 @@
 #!/usr/bin/env python3
 
-#todo: Option to edit device on rack
-#Add quit feature
+#add context menu so you can right click a device and edit it
+#create a new class for power source? Always going to need wall. Should be similar to Rack class
 #Move Rack number to be its own widget
 #open file to last location in Explorer/Finder
 #when saving new file you have to actually type xml, why?
 #drag and drop box
 #UPS support
-#count bug? - got rid of count!!
 
-#change menu structure
-#This will cut down on the opening of files and confusion with display
-#File > Open New Rack
-#File > Create New Rack
-#File > Save Current Rack(Should open to current directory)
-#File > Quit(Warn before quiting)
-#Edit > Add device to rack (current file, don't open new)
-#Edit > Remove Device from Rack
-#Edit > Edit Device on Rack (Change name, model, power, or location)
+#menu structure
+#File > Open New Rack - !
+#File > Create New Rack - !
+#File > Save Current Rack(Should open to current directory) - !
+#File > Quit(Warn before quiting) - !
+#Edit > Add device to rack - !
+#Edit > Remove Device from Rack - !
+#Edit > Edit Device on Rack (Change name, model, power, or location) - !
 #View > Rack vs Power?
-
-#perfect time to create new class for current rack
 
 #xml format
 #<tag attribute=value>text</tag>
@@ -137,8 +133,17 @@ class DisplayMain(QMainWindow):
                         label = QLabel(curr_device_str)
                         label.setStyleSheet("QLabel { background-color : silver; color : black; }")
                         #Tool tip accepts RTF style
-                        label.setToolTip("Model: {}\r\nPower: {} W".format(main_dict[curr_device_key]['model'], main_dict[curr_device_key]['power']))
+                        #create string to be displayed in tool tip
+                        tool_str = ""
+                        for temp_key in self.new_rack.name_key.keys():
+                            #print(temp_key)
+                            tool_str += "{}: {}\r\n".format(temp_key, main_dict[curr_device_key][self.new_rack.name_key[temp_key]])
+
+                        label.setToolTip(tool_str)
+                        #label.setToolTip("Model: {}\r\nPower: {} W".format(main_dict[curr_device_key]['model'], main_dict[curr_device_key]['power']))
                         self.layout.addWidget(label, i, j)
+                    #add an elif here for UPS position
+                    #elif tr(self.maxRackHeight - i) in ups_pos_dict.keys():
                     else:
                         #This will be all I need to print the numbers
                         label = QLabel(str(self.maxRackHeight - i))
@@ -169,6 +174,8 @@ class DisplayMain(QMainWindow):
         self.editMenu.addAction(self.remAct)
         self.fileMenu.addAction(self.saveAct)
         self.editMenu.addAction(self.modifyAct)
+
+        self.fileMenu.addAction(self.quitAct)
         self.rack_open = True
 
 
@@ -213,47 +220,62 @@ class DisplayMain(QMainWindow):
     #used by add to rack, has user input boxes for needed fields
     #later, add all inputs to one box?
     def add_dev_gui(self):
-        #return old_dict if the device could not be added
         #or false if the user does not click ok on input box
         print("add_dev_gui")
-        temp_name, ok_name = QInputDialog.getText(self, 'Add Device', 'Device Name: ')
-        #if user does not click Ok exit this add menu
-        if not ok_name:
-            return False
 
-        temp_model, ok_model = QInputDialog.getText(self, 'Add Device', 'Device Model: ')
-        if not ok_model:
-            return False
+        for temp_key in self.new_rack.name_key.keys():
+            #print(temp_key)
+            new_val, ok_val = QInputDialog.getText(self, 'Add Device', temp_key)
+            if not ok_val:
+                return False
 
-        temp_rack_u, ok_rack_u = QInputDialog.getText(self, 'Add Device', 'Device Height: ')
-        if not ok_rack_u:
-            return False
+            #If we are adding the name of the device, need to create a new dict
+            if temp_key == 'Device Name':
+                temp_name = new_val
+                self.new_rack.dev_dict[temp_name] = {}
+                self.new_rack.dev_dict[temp_name].update({'name':temp_name})
+            #all other attributes just need to be added to dict
+            else:
+                self.new_rack.dev_dict[temp_name].update({self.new_rack.name_key[temp_key]:new_val})
 
-        temp_start, ok_start = QInputDialog.getText(self, 'Add Device', 'Starting Rack Shelf: ')
-        if not ok_start:
-            return False
+        # temp_name, ok_name = QInputDialog.getText(self, 'Add Device', 'Device Name: ')
+        # #if user does not click Ok exit this add menu
+        # if not ok_name:
+        #     return False
+        #
+        # temp_model, ok_model = QInputDialog.getText(self, 'Add Device', 'Device Model: ')
+        # if not ok_model:
+        #     return False
+        #
+        # temp_rack_u, ok_rack_u = QInputDialog.getText(self, 'Add Device', 'Device Height: ')
+        # if not ok_rack_u:
+        #     return False
+        #
+        # temp_start, ok_start = QInputDialog.getText(self, 'Add Device', 'Starting Rack Shelf: ')
+        # if not ok_start:
+        #     return False
+        #
+        # temp_power, ok_power = QInputDialog.getText(self, 'Add Device', 'Power Consumption(W): ')
+        # if not ok_model:
+        #     return False
+        #
+        # self.new_rack.dev_dict[temp_name] = {}
+        # self.new_rack.dev_dict[temp_name].update({'name':temp_name})
+        # self.new_rack.dev_dict[temp_name].update({'model':temp_model})
+        # self.new_rack.dev_dict[temp_name].update({'rack_u':temp_rack_u})
+        # self.new_rack.dev_dict[temp_name].update({'rack_start':temp_start})
+        # self.new_rack.dev_dict[temp_name].update({'power':temp_power})
 
-        temp_power, ok_power = QInputDialog.getText(self, 'Add Device', 'Power Consumption(W): ')
-        if not ok_model:
-            return False
 
-        self.new_rack.dev_dict[temp_name] = {}
-        self.new_rack.dev_dict[temp_name].update({'name':temp_name})
-        self.new_rack.dev_dict[temp_name].update({'model':temp_model})
-        self.new_rack.dev_dict[temp_name].update({'rack_u':temp_rack_u})
-        self.new_rack.dev_dict[temp_name].update({'rack_start':temp_start})
-        self.new_rack.dev_dict[temp_name].update({'power':temp_power})
-
-
-        print("Checking to see if this will fit in the rack.\n")
-        if(self.new_rack.valid_rack):
-            print(f"\n\nNew information successfully added: {self.new_rack.dev_dict[temp_name]}")
+        #print("Checking to see if this will fit in the rack.\n")
+        #if(self.new_rack.valid_rack):
+            #print(f"\n\nNew information successfully added: {self.new_rack.dev_dict[temp_name]}")
             #this section might not be necessary
-            return True
+        return True
 
-        else:
-            print("Error, could not add device")
-            return False
+        #else:
+            #print("Error, could not add device")
+            #return False
 
     #Remove a device from the rack from dropdown, no need for validation on user input
     def remove_dev_gui(self):
@@ -299,20 +321,29 @@ class DisplayMain(QMainWindow):
         if ok_dev:
             if temp_dev in temp_list and temp_dev != 'None':
                 #print(self.new_rack.dev_dict[temp_dev].keys())
-                remove_list = ['Device Name', 'Device Model', 'Device Height', 'Starting Rack Shelf', 'Power Consumption(w)', 'None']
-                temp_remove, ok_remove = QInputDialog.getItem(self, 'Modify Device', 'Select which attribute to modify: ', remove_list)
-                if ok_remove and temp_remove != 'None':
+                modify_list = list(self.new_rack.name_key.keys())
+                print(modify_list)
+                modify_list.append('None')
+                #remove_list = ['Device Name', 'Device Model', 'Device Height', 'Starting Rack Shelf', 'Power Consumption(w)', 'None']
+                temp_modify_att, ok_modify_att = QInputDialog.getItem(self, 'Modify Device', 'Select which attribute to modify: ', modify_list)
+                if ok_modify_att and temp_modify_att != 'None':
                     #updating the name is going to be a disaster, that's the name of the dictionary
-                    if temp_remove == 'Device Name':
-                        print(self.new_rack.dev_dict[temp_dev]['name'])
-                        self.new_rack.dev_dict[temp_dev]['name'] = 'Test'
-                        print(self.new_rack.dev_dict[temp_dev]['name'])
+                    if temp_modify_att == 'Device Name':
+                        temp_modify_name, ok_modify_name = QInputDialog.getText(self, 'Set New Value', 'Device Name')
+                        if not ok_modify_name:
+                            return False
+
+                        #need to update name of dictionary, set new dictionary equal to old, then delete old
+                        self.new_rack.dev_dict[temp_modify_name] = self.new_rack.dev_dict[temp_dev]
+                        del self.new_rack.dev_dict[temp_dev]
+                        self.new_rack.dev_dict[temp_modify_name]['name'] = temp_modify_name
+
                     else:
-                        # self.new_rack.dev_dict[temp_name].update({'model':temp_model})
-                        # self.new_rack.dev_dict[temp_name].update({'rack_u':temp_rack_u})
-                        # self.new_rack.dev_dict[temp_name].update({'rack_start':temp_start})
-                        # self.new_rack.dev_dict[temp_name].update({'power':temp_power})
-                        print("Not yet implemented")
+                        temp_modify_val, ok_modify_val = QInputDialog.getText(self, 'Set New Value', temp_modify_att)
+                        if not ok_modify_val:
+                            return False
+                        print(temp_modify_val)
+                        self.new_rack.dev_dict[temp_dev].update({self.new_rack.name_key[temp_modify_att]:temp_modify_val})
 
                 print("Device modified")
                 return True
@@ -321,25 +352,37 @@ class DisplayMain(QMainWindow):
         print('No devices modified.')
         return False
 
-
+    #translate to name_key
     def write_file_from_dict_gui(self, dev_dict):
         #Element arguments (tag, attrib={})
         out_root = ET.Element('devices')
         #SubElement arguments (parent, tag, attrib={})
+        # for device in dev_dict:
+        #     out_device = ET.SubElement(out_root, 'device', {'name':device})
+        #
+        #     out_model = ET.SubElement(out_device,'model')
+        #     out_model.text = dev_dict[device]['model']
+        #
+        #     out_rack_u = ET.SubElement(out_device, 'rack_u')
+        #     out_rack_u.text = dev_dict[device]['rack_u']
+        #
+        #     out_rack_start = ET.SubElement(out_device, 'rack_start')
+        #     out_rack_start.text = dev_dict[device]['rack_start']
+        #
+        #     out_power = ET.SubElement(out_device, 'power')
+        #     out_power.text = dev_dict[device]['power']
+
         for device in dev_dict:
-            out_device = ET.SubElement(out_root, 'device', {'name':device})
+            for temp_key in self.new_rack.name_key.keys():
+                #print(temp_key)
 
-            out_model = ET.SubElement(out_device,'model')
-            out_model.text = dev_dict[device]['model']
+                if temp_key == 'Device Name':
+                    out_device = ET.SubElement(out_root, 'device', {'name':device})
 
-            out_rack_u = ET.SubElement(out_device, 'rack_u')
-            out_rack_u.text = dev_dict[device]['rack_u']
-
-            out_rack_start = ET.SubElement(out_device, 'rack_start')
-            out_rack_start.text = dev_dict[device]['rack_start']
-
-            out_power = ET.SubElement(out_device, 'power')
-            out_power.text = dev_dict[device]['power']
+                #all other attributes just need to be added to dict
+                else:
+                    out_temp = ET.SubElement(out_device, self.new_rack.name_key[temp_key])
+                    out_temp.text = dev_dict[device][self.new_rack.name_key[temp_key]]
 
         #create xml string using ET
         xmlstr = ET.tostring(out_root).decode()
@@ -374,6 +417,8 @@ class Rack(object):
         self.dev_dict = {}
         #valid rack will be used in build_rack function
         self.valid_rack = True
+        #add support for adding more attributes to name_key
+        self.name_key = {'Device Name':'name', 'Device Model':'model', 'Device Height':'rack_u', 'Starting Rack Shelf':'rack_start', 'Power Consumption(w)':'power', 'Power Source': 'power_source'}
 
     #open file and store the current root position
     def open_file(self, filename):
@@ -465,6 +510,17 @@ class Rack(object):
 
         #return rack_full
         self.valid_rack = True
+
+#create this as a flyout under edit, one per device
+class Power(object):
+    def __init__(self):
+        self.power_dict = {}
+        #what do I need to know about power devices
+        #devices connected - this will be from a function
+        #current usage - calculate this
+        #total capacity - need from user input
+        #rack position- need from user input
+        #number of outlets - need from user input
 
 if __name__ == '__main__':
     #main_menu()
